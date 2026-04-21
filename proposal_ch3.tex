@@ -1,78 +1,348 @@
-﻿\section{科学假说与研究目标}\label{sec:hypotheses}
+﻿\section{研究框架与技术路径}\label{sec:framework}
 
-基于对上述四个核心科学问题的分析，我们提出以下四个可证伪的科学假说，并据此确立具体的量化研究目标：
+\subsection{系统总体架构}\label{sec:overview}
 
-\subsection{科学假说}
+图~\ref{fig:e2e_pipeline}展示了E3A框架的总体架构。框架由五个核心模块串行协作，形成从自然语言需求到RTL代码的完整闭环。
 
-\begin{tcolorbox}[hypothesisstyle]
-\textbf{假说 H1（通用信道抽象的完备性）}
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.65cm,
+  mainbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1.2pt,
+    fill=lightblue!55,text width=11cm,align=center,inner sep=7pt,font=\small},
+  predbox/.style={rectangle,rounded corners=4pt,draw=natblue!70,line width=1pt,
+    fill=lightblue!30,text width=4.9cm,align=center,inner sep=6pt,font=\small},
+  outbox/.style={rectangle,rounded corners=4pt,draw=natgreen,line width=1.2pt,
+    fill=lightgreen!50,text width=11cm,align=center,inner sep=7pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  darr/.style={-Stealth,thick,color=natblue!50,dashed}
+]
+\node[mainbox] (req) {
+  \textbf{自然语言需求 / 标准规范文档输入}\\[3pt]
+  \textit{例："5G URLLC，BER $\leq 10^{-9}$，时延 $\leq$ 1~ms，芯片面积 $\leq$ 2~mm$^2$"}
+};
+\node[mainbox,below=of req] (llm) {
+  \textbf{LLM 需求解析引擎}\\[3pt]
+  检索增强生成（RAG）$+$ 思维链推理（CoT）$+$ 形式化约束验证器
+};
+\node[mainbox,below=of llm] (constr) {
+  \textbf{形式化约束集合 $\calC$}\\[3pt]
+  $\bigl\{\BER \leq 10^{-9},\;\Delta t \leq 1\,\text{ms},\;A \leq 2\,\text{mm}^2,\;
+  P \leq 500\,\text{mW},\;\mathcal{G} \in \{\text{LDPC, Polar}\}\bigr\}$
+};
+\node[predbox,below=1.2cm of constr,xshift=-3.0cm] (perf) {
+  \textbf{算法性能代理模型}\\[3pt]DeepONet\\[2pt]
+  \footnotesize $(\thetacode, \calT) \mapsto \BER(\SNR)$
+};
+\node[predbox,below=1.2cm of constr,xshift=3.0cm] (hw) {
+  \textbf{硬件性能代理模型}\\[3pt]GNN + MLP\\[2pt]
+  \footnotesize $(\thetahw,\mathrm{Tech}) \mapsto \{A,P,T_d\}$
+};
+\node[mainbox,below=1.2cm of perf,xshift=3.0cm] (optim) {
+  \textbf{联合离散优化引擎}\\[3pt]
+  $\displaystyle\min_{\thetacode,\,\thetahw}\hat{g}(\thetahw)\;\text{s.t.}\;
+  \hat{\calF}(\thetacode, \calT) \geq \calC_{\mathrm{perf}}$\\[2pt]
+  贝叶斯优化 $/$ 遗传算法 $/$ 深度强化学习
+};
+\node[mainbox,below=of optim] (rtl) {
+  \textbf{RTL 代码生成器}\\[3pt]
+  参数化译码器硬件模板库 $+$ LLM辅助代码生成 $+$ 代理模型闭环验证
+};
+\node[outbox,below=of rtl] (out) {
+  \textbf{最终交付物}\\[3pt]
+  可综合RTL代码 $+$ 预期BER/FER曲线 $+$ 硬件资源估计报告
+};
+\draw[arr] (req) -- (llm);
+\draw[arr] (llm) -- (constr);
+\draw[arr] (constr.south) -- ++(0,-0.4) -| (perf.north);
+\draw[arr] (constr.south) -- ++(0,-0.4) -| (hw.north);
+\draw[arr] (perf.south) -| ([xshift=-1cm]optim.north);
+\draw[arr] (hw.south) -| ([xshift=1cm]optim.north);
+\draw[arr] (optim) -- (rtl);
+\draw[arr] (rtl) -- (out);
+\draw[darr] (optim.west) -- ++(-1.8,0) |- (constr.west)
+  node[pos=0.85,above,font=\scriptsize,color=natblue!60]{迭代反馈};
+\end{tikzpicture}
+\caption{E3A端到端纠错码AI全自动设计框架总体架构。框架由五个核心模块构成，实现从自然语言需求到可综合RTL代码的全自动闭环设计流水线。}
+\label{fig:e2e_pipeline}
+\end{figure}
 
-任意物理系统中的信道噪声均可由信道三元组
-$\calT = \bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\bigr)$
-精确刻画。基于此三元组表示训练的ECC性能预测模型，在未见过的物理系统（仅提供对应三元组）上的预测误差，与在同类系统上训练的专用模型相当。
+\subsection{通用信道抽象}\label{sec:channel_abstraction}
 
-\textbf{验证方案}：在五类物理系统上独立获取信道三元组，使用统一模型预测，对比专用模型精度，目标：通用模型精度损失$< 0.2$~dB。
-\end{tcolorbox}
-
-\vspace{4pt}
-\begin{tcolorbox}[hypothesisstyle]
-\textbf{假说 H2（神经算子逼近的有效性）}
-
-从（码结构，信道三元组）到BER/FER性能曲线的映射$\calF: (\calC, \calT) \mapsto \BER(\cdot)$构成一个定义在适当Banach空间上的连续算子，可由DeepONet以任意精度逼近（由DeepONet的万能逼近定理保证~\cite{lu2021}）。具体而言，存在有限参数量的DeepONet模型，能够在给定精度$\epsilon = 0.1$~dB下预测任意LDPC码与Polar码在任意物理信道三元组上的完整BER/FER曲线。
-
-\textbf{验证方案}：构建包含$> 10^6$个（码, 信道, BER曲线）三元组的训练集，训练DeepONet，在独立测试集上验证BER预测RMSE（dB域）$< 0.1$~dB，曲线整体相对误差$< 5\%$。
-\end{tcolorbox}
-
-\vspace{4pt}
-\begin{tcolorbox}[hypothesisstyle]
-\textbf{假说 H3（硬件性能的低维可学习性）}
-
-LDPC/Polar译码器的硬件实现指标（逻辑面积$A$、动态功耗$P$、关键路径时延$T_d$）是码参数与工艺参数的低维可学习函数，可由轻量GNN+MLP代理模型以$< 5\%$相对误差精确预测，同时推理速度较RTL综合工具快$> 100$倍。
-
-\textbf{验证方案}：使用工业综合工具（Design Compiler）生成$> 5000$个设计数据点，训练代理模型，验证面积/功耗预测误差$< 5\%$，时延误差$< 8\%$。
-\end{tcolorbox}
-
-\vspace{4pt}
-\begin{tcolorbox}[hypothesisstyle]
-\textbf{假说 H4（端到端全自动化的可行性）}
-
-通过LLM需求解析引擎、神经算子性能预测器与硬件代理模型、以及参数化RTL生成器的有机组合，可以实现从自然语言需求输入到可综合RTL代码输出的\textbf{全自动闭环设计流水线}，且最终RTL代码在FPGA原型验证中的实测BER性能与代理模型预测值之间的误差$< 0.3$~dB。
-
-\textbf{验证方案}：以5种不同应用场景的自然语言需求为输入，运行完整E3A流水线，最终RTL代码在Xilinx Alveo FPGA平台进行硬件在环（HIL）验证。
-\end{tcolorbox}
-
-\subsection{量化研究目标}\label{sec:objectives}
-
-基于上述假说，本研究设定以下可量化的研究目标，作为项目验收标准：
+E3A框架的理论基础是\textbf{通用信道三元组}表示：
+\begin{equation}
+  \calT = \Bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\Bigr),
+  \label{eq:channel_triplet}
+\end{equation}
+其中$\{\SNR_i\}$为逐bit信噪比序列，$\bvec{R}$为噪声相关性矩阵，$p(x)$为噪声概率密度函数。对于高斯信道（AWGN），三元组退化为单一SNR标量，与经典模型完全兼容。表~\ref{tab:channel_mapping}给出了五类物理系统到三元组的映射关系。
 
 \begin{table}[htbp]
 \centering
-\caption{E3A框架量化研究目标}
-\label{tab:objectives}
-\rowcolors{2}{lightblue!30}{white}
-\begin{tabular}{@{}L{3.5cm}L{5.0cm}L{3.5cm}@{}}
+\caption{五类物理系统与信道三元组的映射关系}
+\label{tab:channel_mapping}
+\setlength{\tabcolsep}{5pt}
+\rowcolors{2}{lightblue!20}{white}
+\begin{tabular}{@{}L{2.2cm}L{3.0cm}L{2.8cm}L{2.8cm}L{2.4cm}@{}}
 \toprule
-\textbf{目标维度} & \textbf{具体指标} & \textbf{目标值} \\
+\textbf{物理系统} & \textbf{主要噪声来源} & \textbf{SNR序列} & \textbf{相关性矩阵$\bvec{R}$} & \textbf{噪声PDF $p(x)$} \\
 \midrule
-性能预测精度 & BER曲线预测误差（dB域RMSE） & $< 0.1$~dB \\
-性能预测速度 & 单次BER曲线预测时间 & $< 10$~ms \\
-相对仿真加速比 & vs.\ GPU加速蒙特卡洛 & $> 1000\times$ \\
-硬件面积预测精度 & 逻辑面积相对误差 & $< 5\%$ \\
-硬件功耗预测精度 & 动态功耗相对误差 & $< 5\%$ \\
-端到端优化速度 & 从需求到最优参数（含100次迭代） & $< 10$~min \\
-RTL验证一致性 & FPGA实测vs.预测BER误差 & $< 0.3$~dB \\
-系统通用性 & 成功验证的物理系统类型数 & $\geq 5$ \\
-需求形式化准确率 & 关键约束提取准确率 & $> 95\%$ \\
+5G/6G无线 & 多径衰落、热噪声 & 逐子载波瞬时SNR & 频域相关 & 高斯（近似） \\
+相干光通信 & 相位噪声、ASE噪声 & 信道相关，均匀 & 弱相关或独立 & 高斯/非高斯 \\
+NAND Flash & 电荷俘获、单元干扰 & 逐单元磨损SNR & 相邻单元强相关 & 混合高斯 \\
+量子比特 & 退相干、Pauli噪声 & 逐量子比特错误率 & 器件近邻相关 & 离散Pauli分布 \\
+忆阻器阵列 & 电导分布、时变漂移 & 逐器件读写SNR & 行/列线寄生耦合 & 非参数分布 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{研究范围说明}
+\subsection{性能预测神经算子}\label{sec:predictor}
 
-本研究聚焦于以下类型的纠错码：
-\begin{itemize}
-  \item \textbf{LDPC码}：包括3GPP NR标准基图（BG1/BG2）及自定义扩展基图
-  \item \textbf{Polar码}：包括标准CRC辅助Polar码（CA-Polar）及PAC码
-\end{itemize}
+图~\ref{fig:neural_operator}展示了神经算子性能预测框架的详细架构，由Branch Net、Trunk Net与DeepONet融合层三部分组成。
 
-目标物理系统涵盖：5G无线信道、相干光通信信道、NAND Flash存储信道、量子比特噪声信道（超导体系）及忆阻器存储信道（第\ref{sec:applications}节详述）。
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.45cm,
+  bnet/.style={rectangle,rounded corners=3pt,draw=natblue,line width=1pt,
+    fill=lightblue!55,text width=5.2cm,align=center,inner sep=5pt,font=\small},
+  tnet/.style={rectangle,rounded corners=3pt,draw=natorange,line width=1pt,
+    fill=lightorange!70,text width=5.2cm,align=center,inner sep=5pt,font=\small},
+  dnet/.style={rectangle,rounded corners=5pt,draw=natgreen,line width=1.5pt,
+    fill=lightgreen!55,text width=11cm,align=center,inner sep=8pt,font=\small},
+  outb/.style={rectangle,rounded corners=3pt,draw=natgreen!80!black,line width=1pt,
+    fill=lightgreen!30,text width=11cm,align=center,inner sep=6pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  oarr/.style={-Stealth,thick,color=natorange},
+  garr/.style={-Stealth,thick,color=natgreen!80!black}
+]
+%% Branch Net (left column, centered at x=0)
+\node[text=natblue,font=\normalsize\bfseries] (blbl) at (0,0.2) {Branch Net（结构编码器）};
+\node[bnet,below=of blbl] (fg) {
+  \textbf{因子图输入}\\[2pt]
+  LDPC基图 / Polar蝶形网络\\
+  \footnotesize 节点特征: $[\text{类型},\deg_v,\SNR_i]$\\
+  \footnotesize 边特征: $[\text{连接类型},\Delta\SNR]$
+};
+\node[bnet,below=of fg] (gt) {
+  \textbf{Graph Transformer}\\[2pt]
+  多头图注意力（$H$ heads）\\
+  \footnotesize 消息传递模拟迭代BP译码\\
+  \footnotesize $L$层交替聚合
+};
+\node[bnet,below=of gt] (pool) {
+  \textbf{全局图读出（Readout）}\\[2pt]
+  \footnotesize 注意力加权池化\\
+  $\zstruct \in \R^{d_s}$
+};
+\node[bnet,below=of pool] (bmlp) {
+  \textbf{Branch MLP}\\[2pt]
+  $\zstruct \xrightarrow{\text{MLP}} \bm{b} \in \R^p$\\
+  \footnotesize $[b_1, b_2, \ldots, b_p]$
+};
+%% Trunk Net (right column, centered at x=6.6)
+\node[font=\normalsize\bfseries,color=natorange] (tlbl) at (6.6,0.2) {Trunk Net（信道编码器）};
+\node[tnet,below=of tlbl] (snrenc) at (6.6,-0.95) {
+  \textbf{SNR序列编码器}\\[2pt]
+  $\{\SNR_i\} \xrightarrow{\text{Transformer}}$\\
+  $\bm{f}_{\mathrm{snr}} \in \R^{d_1}$
+};
+\node[tnet,below=of snrenc] (correnc) {
+  \textbf{相关性编码器}\\[2pt]
+  $\bvec{R} \xrightarrow{\text{谱分解}} (\bm{\Lambda},\bvec{V})$\\
+  $\xrightarrow{\text{MLP}} \bm{f}_{\mathrm{corr}} \in \R^{d_2}$
+};
+\node[tnet,below=of correnc] (pdfenc) {
+  \textbf{噪声PDF编码器}\\[2pt]
+  $p(x)$采样序列\\
+  $\xrightarrow{\text{1D-CNN}} \bm{f}_{\mathrm{pdf}} \in \R^{d_3}$
+};
+\node[tnet,below=of pdfenc] (fuse) {
+  \textbf{多模态特征融合}\\[2pt]
+  $\zchannel = \mathrm{Concat}[\bm{f}_{\mathrm{snr}},\bm{f}_{\mathrm{corr}},\bm{f}_{\mathrm{pdf}}]$
+};
+\node[tnet,below=of fuse] (tmlp) {
+  \textbf{Trunk MLP}\\[2pt]
+  $\zchannel \xrightarrow{\text{MLP}} \bm{t} \in \R^p$\\
+  \footnotesize $[t_1, t_2, \ldots, t_p]$
+};
+%% DeepONet fusion (below both columns)
+\node[dnet,below=1.2cm of bmlp,xshift=3.3cm] (deepo) {
+  \textbf{DeepONet 融合层（神经内积）}\\[5pt]
+  $\hat{\calF}(\SNR) = \displaystyle\sum_{i=1}^{p} b_i \cdot t_i = \langle \bm{b},\,\bm{t} \rangle_{\R^p}$\\[4pt]
+  \footnotesize\textit{理论保证：对任意连续算子$\calF$，存在有限$p$使得逼近误差任意小~\cite{lu2021}}
+};
+\node[outb,below=0.7cm of deepo] (out) {
+  \textbf{输出：性能曲线 $+$ 译码门限}\\[4pt]
+  $\hat{\BER}(\SNR),\;\hat{\FER}(\SNR),\;
+  \SNR^* = \min\{\SNR:\hat{\BER}(\SNR) \leq \epsilon_{\mathrm{target}}\}$
+};
+%% Arrows
+\draw[arr] (fg) -- (gt); \draw[arr] (gt) -- (pool); \draw[arr] (pool) -- (bmlp);
+\draw[oarr] (snrenc) -- (correnc); \draw[oarr] (correnc) -- (pdfenc);
+\draw[oarr] (pdfenc) -- (fuse); \draw[oarr] (fuse) -- (tmlp);
+\draw[arr] (bmlp.south) |- ([xshift=-1cm]deepo.north);
+\draw[oarr] (tmlp.south) |- ([xshift=1cm]deepo.north);
+\draw[garr] (deepo) -- (out);
+\end{tikzpicture}
+\caption{神经算子性能预测框架详细架构。Branch Net以图变换器编码码字的因子图结构，Trunk Net以三路独立编码器处理信道三元组，二者通过DeepONet神经内积融合，输出完整BER/FER性能曲线与译码门限。}
+\label{fig:neural_operator}
+\end{figure}
+
+\subsubsection{Branch Net：码结构编码器}
+
+\textbf{因子图构建}：对于LDPC码，直接从校验矩阵$\bvec{H}$构建二部因子图；对于Polar码，将编码蝶形网络展开为层次化有向因子图。节点特征向量为：
+\begin{equation}
+  \bm{h}_v^{(0)} = \bigl[\mathbf{1}[\text{节点类型}],\;\deg(v),\;\SNR_v,\;\text{码率}R\bigr]^\top,
+  \label{eq:node_feat}
+\end{equation}
+边特征向量为$\bm{e}_{uv} = [\mathbf{1}[\text{连接类型}], |\SNR_u - \SNR_v|]^\top$。
+
+\textbf{Graph Transformer}采用$L$层图变换器交替执行局部消息传递与全局自注意力，其中消息传递步骤模拟置信传播（BP）译码的迭代过程：
+\begin{equation}
+  \bm{h}_v^{(\ell+1)} = \mathrm{LN}\!\left(\bm{h}_v^{(\ell)} + \sum_{u \in \mathcal{N}(v)} \alpha_{vu}^{(\ell)} \cdot \bm{W}_{\mathrm{val}}^{(\ell)} \bm{h}_u^{(\ell)}\right),
+  \label{eq:graph_transformer}
+\end{equation}
+其中$\alpha_{vu}^{(\ell)}$为多头注意力权重，$\mathrm{LN}$为层归一化。
+
+\subsubsection{Trunk Net：信道编码器}
+
+Trunk Net以三路并行编码器独立处理信道三元组：\textbf{SNR序列编码器}使用Transformer处理逐bit SNR序列；\textbf{相关性编码器}对$\bvec{R}$进行谱分解后经MLP编码；\textbf{噪声PDF编码器}将采样密度值视为一维时序信号经1D-CNN提取特征。最终融合为：$\zchannel = \mathrm{Concat}[\bm{f}_{\mathrm{snr}}, \bm{f}_{\mathrm{corr}}, \bm{f}_{\mathrm{pdf}}]$。
+
+\subsubsection{DeepONet融合层与理论基础}
+
+DeepONet以神经内积结构实现算子逼近：
+\begin{equation}
+  \hat{\calF}(\SNR;\,\thetacode,\calT) = \sum_{i=1}^{p} b_i(\thetacode)\cdot t_i(\calT) = \langle\bm{b}, \bm{t}\rangle.
+  \label{eq:deeponet}
+\end{equation}
+由Chen \& Chen（1995）万能逼近定理\cite{chen1995}，对任意连续紧算子$\calF$，存在有限$p$使得$\|\hat{\calF} - \calF\|_\infty < \varepsilon$。Lu等（2021）\cite{lu2021}在\textit{Nature Machine Intelligence}上已验证DeepONet在复杂非线性算子逼近中兼具高精度（误差$<1\%$）与高效推理（加速比$>10^4\times$）。训练时在对数域（$\log_{10}\BER$）计算损失，以处理BER的多数量级跨度。
+
+\subsection{硬件性能代理模型}\label{sec:hw_proxy}
+
+硬件代理模型$\hat{g}$建立从（码参数, 译码算法参数, 工艺参数）到VLSI实现指标的代理映射：
+\begin{equation}
+  \hat{g}:\;(n, R_c, \rho_{\bvec{H}}, q, N_{\mathrm{iter}}, L_{\mathrm{tech}}, f_{\mathrm{clk}})
+  \;\longmapsto\;(A, P_{\mathrm{dyn}}, T_d, \Gamma),
+  \label{eq:hw_proxy}
+\end{equation}
+其中$n$为码长，$R_c$为码率，$\rho_{\bvec{H}}$为校验矩阵稀疏度，$q$为量化位宽，$N_{\mathrm{iter}}$为最大迭代次数，$L_{\mathrm{tech}}$为工艺节点，$f_{\mathrm{clk}}$为目标时钟频率。
+
+\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。训练数据使用Synopsys Design Compiler在28~nm、7~nm工艺库下对$>5000$个不同配置的LDPC/Polar译码器RTL进行综合生成。
+
+图~\ref{fig:channel_hw}展示了通用信道抽象在算法层与硬件层优化中的桥接作用。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.8cm and 1.0cm,
+  sysbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1pt,
+    fill=lightblue!40,text width=2.0cm,align=center,inner sep=5pt,font=\small,minimum height=1.5cm},
+  tripletbox/.style={rectangle,rounded corners=5pt,draw=natgreen,line width=1.5pt,
+    fill=lightgreen!50,text width=3.8cm,align=center,inner sep=8pt,font=\small},
+  evalbox/.style={rectangle,rounded corners=4pt,draw=natorange,line width=1pt,
+    fill=lightorange!60,text width=3.4cm,align=center,inner sep=6pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  garr/.style={-Stealth,thick,color=natgreen!80!black}
+]
+\node[sysbox] (ws)  at (-5.0,0) {\textbf{无线信道}\\5G/6G};
+\node[sysbox] (opt) at (-2.5,0) {\textbf{光纤信道}\\400G+};
+\node[sysbox] (fl)  at (0,0)    {\textbf{Flash存储}\\QLC/PLC};
+\node[sysbox] (qt)  at (2.5,0)  {\textbf{量子信道}\\超导量子比特};
+\node[sysbox] (mem) at (5.0,0)  {\textbf{忆阻器}\\存算一体};
+\node[tripletbox] (ct) at (0,-2.8) {
+  \textbf{信道三元组 $\calT$}\\[4pt]
+  $\{\SNR_i\}_{i=1}^n$\\[2pt]
+  $\bvec{R} \in \R^{n\times n}$\\[2pt]
+  $p(x)$
+};
+\node[evalbox] (algperf) at (-2.8,-5.8) {
+  \textbf{算法性能预测}\\[3pt]DeepONet\\[2pt]
+  $\hat{\BER}(\SNR)$
+};
+\node[evalbox] (hwperf) at (2.8,-5.8) {
+  \textbf{硬件性能预测}\\[3pt]GNN + MLP\\[2pt]
+  $\hat{A},\hat{P},\hat{T}_d$
+};
+\draw[arr] (ws.south)  -- (ct.north);
+\draw[arr] (opt.south) -- (ct.north);
+\draw[arr] (fl.south)  -- (ct.north);
+\draw[arr] (qt.south)  -- (ct.north);
+\draw[arr] (mem.south) -- (ct.north);
+\draw[garr] (ct.south) -- ++(0,-0.4) -| (algperf.north)
+  node[pos=0.3,above,font=\footnotesize]{算法层};
+\draw[garr] (ct.south) -- ++(0,-0.4) -| (hwperf.north)
+  node[pos=0.3,above,font=\footnotesize]{硬件层};
+\end{tikzpicture}
+\caption{通用信道抽象的双层桥接作用。五类物理系统通过统一三元组表示解耦，三元组同时驱动算法性能预测与硬件性能预测，实现算法-硬件联合评估。}
+\label{fig:channel_hw}
+\end{figure}
+
+\subsection{LLM需求解析引擎}\label{sec:llm_engine}
+
+LLM需求解析引擎通过三阶段推理管道将模糊需求转化为形式化约束集合$\calC$：
+
+\textbf{阶段一——知识检索（RAG）}：构建包含5G/6G相关3GPP标准、光通信ITU-T建议、Flash存储JEDEC标准及经典ECC性能基准数据的专业知识库，通过语义相似度检索最相关的上下文。
+
+\textbf{阶段二——约束推理（CoT）}：在检索上下文基础上，LLM执行多步思维链推理，逐步提取并量化：可靠性约束、延迟约束、硬件约束、码型偏好与系统信道类型。
+
+\textbf{阶段三——约束验证}：基于规则引擎对约束集合进行一致性检验：数值合理性、香农极限可行性校验（若约束违反信道容量则报错）、约束冲突检测。
+
+形式化约束集合的标准格式为：
+\begin{equation}
+  \calC = \left\{
+  \BER_{\mathrm{target}} \leq \epsilon,\;
+  \Delta t_{\max} \leq \tau,\;
+  A_{\max} \leq A^*,\;
+  P_{\max} \leq P^*,\;
+  \Gamma_{\min} \geq \Gamma^*,\;
+  \mathcal{G}_{\mathrm{allowed}} \subseteq \{\text{LDPC, Polar}\}
+  \right\}.
+\end{equation}
+
+\subsection{联合优化与RTL生成}\label{sec:optimizer}
+
+E3A框架的联合优化问题形式化为：
+\begin{equation}
+\begin{aligned}
+  & \min_{\thetacode,\,\thetahw} && \alpha \hat{A}(\thetahw) + \beta \hat{P}(\thetahw) + \gamma \hat{T}_d(\thetahw)\\
+  & \;\mathrm{s.t.}             && \hat{\calF}(\thetacode, \calT) \geq \calC_{\mathrm{perf}},\\
+  &                             && \hat{A}(\thetahw) \leq A^*,\quad \hat{P}(\thetahw) \leq P^*,\quad \hat{\Gamma}(\thetahw) \geq \Gamma^*,\\
+  &                             && \thetacode \in \Theta_{\mathrm{code}},\quad \thetahw \in \Theta_{\mathrm{hw}}.
+\end{aligned}
+\label{eq:joint_opt}
+\end{equation}
+
+由于代理模型的单次推理时间约为毫秒级，$10^4$次模型评估仅需约10秒，实现相较传统方法$>1000\times$的优化速度提升。图~\ref{fig:joint_opt}展示了优化迭代闭环。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.9cm and 1.2cm,
+  procbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1.2pt,
+    fill=lightblue!50,text width=3.2cm,align=center,inner sep=6pt,font=\small},
+  evalbox/.style={rectangle,rounded corners=4pt,draw=natorange,line width=1pt,
+    fill=lightorange!60,text width=3.2cm,align=center,inner sep=6pt,font=\small},
+  decbox/.style={diamond,aspect=2.0,draw=natgreen,line width=1.2pt,
+    fill=lightgreen!50,text width=2.6cm,align=center,inner sep=3pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  oarr/.style={-Stealth,thick,color=natorange}
+]
+\node[procbox] (init) {\textbf{初始化}\\约束集合$\calC$\\信道三元组$\calT$};
+\node[procbox,right=of init] (propose) {\textbf{参数提案}\\贝叶斯优化/GA\\生成$(\thetacode,\thetahw)$};
+\node[evalbox,right=of propose] (eval) {\textbf{代理模型评估}\\$\hat{\calF}(\thetacode,\calT)$\\$\hat{A}(\thetahw),\hat{P}(\thetahw)$};
+\node[decbox,below=1.1cm of eval] (check) {满足约束$\calC$?\\收敛?};
+\node[procbox,left=of check] (update) {\textbf{更新代理}\\加入新观测点\\后验更新};
+\node[procbox,right=1.2cm of check] (output) {\textbf{输出最优参数}\\$\thetacode^*,\thetahw^*$\\$\to$RTL生成器};
+\draw[arr] (init) -- (propose);
+\draw[arr] (propose) -- (eval);
+\draw[oarr] (eval) -- (check);
+\draw[arr] (check) -- node[left,font=\scriptsize]{否} (update);
+\draw[arr] (update.west) -- ++(-0.4,0) |- (propose.west);
+\draw[arr] (check) -- node[above,font=\scriptsize]{是} (output);
+\node[above=0.15cm of propose,font=\scriptsize,color=natgray]{每次迭代~$<$~10~ms};
+\end{tikzpicture}
+\caption{联合离散优化迭代闭环。以代理模型替代耗时仿真，单次评估时间从小时级降至毫秒级。}
+\label{fig:joint_opt}
+\end{figure}
+
+RTL代码生成器接收最优参数对$(\thetacode^*, \thetahw^*)$，通过三步生成可综合译码器RTL代码：\textbf{（1）参数化模板实例化}：从覆盖主流译码器架构（分层BP、SCL、LDPC全并行/部分并行）的模板库中选择并实例化；\textbf{（2）LLM辅助细粒度代码补全}：对自定义模块调用代码LLM生成RTL片段；\textbf{（3）代理模型闭环验证}：将生成RTL输入硬件代理模型进行快速预评估，偏差超过阈值时触发参数微调。最终交付物包含可综合System Verilog代码、综合脚本（Tcl）、预期性能报告与测试向量生成脚本。
