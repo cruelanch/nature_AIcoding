@@ -1,0 +1,129 @@
+﻿\section{核心技术框架（下）：硬件代理、LLM解析与联合优化}\label{sec:framework_b}
+
+\subsection{硬件性能代理模型}\label{sec:hw_proxy}
+
+硬件代理模型$\hat{g}$建立从（码参数, 译码算法参数, 工艺参数）到VLSI实现指标的代理映射：
+\begin{equation}
+  \hat{g}:\;(n, R_c, \rho_{\bvec{H}}, q, N_{\mathrm{iter}}, L_{\mathrm{tech}}, f_{\mathrm{clk}})
+  \;\longmapsto\;(A, P_{\mathrm{dyn}}, T_d, \Gamma),
+  \label{eq:hw_proxy}
+\end{equation}
+其中$n$为码长，$R_c$为码率，$\rho_{\bvec{H}}$为校验矩阵稀疏度，$q$为量化位宽，$N_{\mathrm{iter}}$为最大迭代次数，$L_{\mathrm{tech}}$为工艺节点，$f_{\mathrm{clk}}$为目标时钟频率。
+
+\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图（DFG）表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征的图级表示。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。\textbf{训练数据}使用Synopsys Design Compiler在28~nm、7~nm工艺库下对$>5000$个不同配置的LDPC/Polar译码器RTL进行综合生成。
+
+图~\ref{fig:channel_hw}展示了通用信道抽象在算法层与硬件层优化中的桥接作用。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  sysbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1pt,
+    fill=lightblue!40,text width=2.3cm,align=center,inner sep=5pt,font=\small,minimum height=1.6cm},
+  tripletbox/.style={rectangle,rounded corners=5pt,draw=natgreen,line width=1.5pt,
+    fill=lightgreen!50,text width=3.8cm,align=center,inner sep=8pt,font=\small},
+  evalbox/.style={rectangle,rounded corners=4pt,draw=natorange,line width=1pt,
+    fill=lightorange!60,text width=3.4cm,align=center,inner sep=6pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  garr/.style={-Stealth,thick,color=natgreen!80!black}
+]
+\node[sysbox] (ws) at (-5.5,0) {\textbf{无线信道}\\5G/6G\\OFDM};
+\node[sysbox] (opt) at (-2.75,0) {\textbf{光纤信道}\\相干光\\400G+};
+\node[sysbox] (fl) at (0,0) {\textbf{Flash存储}\\QLC/PLC};
+\node[sysbox] (qt) at (2.75,0) {\textbf{量子信道}\\超导\\量子比特};
+\node[sysbox] (mem) at (5.5,0) {\textbf{忆阻器}\\存算一体};
+\node[tripletbox] (ct) at (0,-3.2) {
+  \textbf{信道三元组 $\calT$}\\[4pt]
+  $\{\SNR_i\}_{i=1}^n$\\[2pt]
+  $\bvec{R} \in \R^{n\times n}$\\[2pt]
+  $p(x)$
+};
+\node[evalbox] (algperf) at (-3.0,-6.5) {
+  \textbf{算法性能预测}\\[3pt]DeepONet\\[2pt]
+  $\hat{\BER}(\SNR)$
+};
+\node[evalbox] (hwperf) at (3.0,-6.5) {
+  \textbf{硬件性能预测}\\[3pt]GNN + MLP\\[2pt]
+  $\hat{A},\hat{P},\hat{T}_d$
+};
+\draw[arr] (ws.south) -- (ct.north); \draw[arr] (opt.south) -- (ct.north);
+\draw[arr] (fl.south) -- (ct.north); \draw[arr] (qt.south) -- (ct.north);
+\draw[arr] (mem.south) -- (ct.north);
+\draw[garr] (ct.south) -- ++(0,-0.4) -| (algperf.north)
+  node[pos=0.25,above,font=\footnotesize]{算法层};
+\draw[garr] (ct.south) -- ++(0,-0.4) -| (hwperf.north)
+  node[pos=0.25,above,font=\footnotesize]{硬件层};
+\end{tikzpicture}
+\caption{通用信道抽象的双层桥接作用。五类物理系统通过统一三元组表示解耦，三元组同时驱动算法性能预测与硬件性能预测，实现算法-硬件联合评估。}
+\label{fig:channel_hw}
+\end{figure}
+
+\subsection{LLM需求解析引擎}\label{sec:llm_engine}
+
+LLM需求解析引擎通过三阶段推理管道将模糊需求转化为形式化约束集合$\calC$：
+
+\textbf{阶段一——知识检索（RAG）}：构建包含5G/6G相关3GPP标准、光通信ITU-T建议、Flash存储JEDEC标准及经典ECC性能基准数据的专业知识库，通过语义相似度检索最相关的上下文。
+
+\textbf{阶段二——约束推理（CoT）}：在检索上下文基础上，LLM执行多步思维链推理，逐步提取并量化：可靠性约束、延迟约束、硬件约束、码型偏好与系统信道类型。
+
+\textbf{阶段三——约束验证}：基于规则引擎对约束集合进行一致性检验：数值合理性（BER目标在$[10^{-15}, 10^{-1}]$内）、香农极限可行性校验（若约束违反信道容量则报错）、约束冲突检测。
+
+形式化约束集合的标准格式：
+\begin{equation}
+  \calC = \left\{
+  \BER_{\mathrm{target}} \leq \epsilon,\;
+  \Delta t_{\max} \leq \tau,\;
+  A_{\max} \leq A^*,\;
+  P_{\max} \leq P^*,\;
+  \Gamma_{\min} \geq \Gamma^*,\;
+  \mathcal{G}_{\mathrm{allowed}} \subseteq \{\text{LDPC, Polar}\}
+  \right\}.
+\end{equation}
+
+\subsection{联合离散优化引擎}\label{sec:optimizer}
+
+E3A框架的联合优化问题形式化为：
+\begin{equation}
+\begin{aligned}
+  & \min_{\thetacode,\,\thetahw} && \alpha \hat{A}(\thetahw) + \beta \hat{P}(\thetahw) + \gamma \hat{T}_d(\thetahw)\\
+  & \;\mathrm{s.t.}             && \hat{\calF}(\thetacode, \calT) \geq \calC_{\mathrm{perf}},\\
+  &                             && \hat{A}(\thetahw) \leq A^*,\quad \hat{P}(\thetahw) \leq P^*,\quad \hat{\Gamma}(\thetahw) \geq \Gamma^*,\\
+  &                             && \thetacode \in \Theta_{\mathrm{code}},\quad \thetahw \in \Theta_{\mathrm{hw}}.
+\end{aligned}
+\label{eq:joint_opt}
+\end{equation}
+
+由于代理模型的单次推理时间约为毫秒级，$10^4$次模型评估仅需约10秒，使得原本计算上不可行的大规模参数搜索成为可能，\textbf{实现相较传统方法$>1000\times$的优化速度提升}。图~\ref{fig:joint_opt}展示了优化迭代闭环。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=1.0cm and 1.5cm,
+  procbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1.2pt,
+    fill=lightblue!50,text width=3.5cm,align=center,inner sep=7pt,font=\small},
+  evalbox/.style={rectangle,rounded corners=4pt,draw=natorange,line width=1pt,
+    fill=lightorange!60,text width=3.5cm,align=center,inner sep=7pt,font=\small},
+  decbox/.style={diamond,aspect=2.2,draw=natgreen,line width=1.2pt,
+    fill=lightgreen!50,text width=2.8cm,align=center,inner sep=3pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  oarr/.style={-Stealth,thick,color=natorange}
+]
+\node[procbox] (init) at (0,0) {\textbf{初始化}\\约束集合$\calC$\\信道三元组$\calT$};
+\node[procbox,right=of init] (propose) {\textbf{参数提案}\\贝叶斯优化/GA\\生成$(\thetacode,\thetahw)$};
+\node[evalbox,right=of propose] (eval) {\textbf{代理模型评估}\\$\hat{\calF}(\thetacode,\calT)$\\$\hat{A}(\thetahw),\hat{P}(\thetahw)$};
+\node[decbox,below=1.2cm of eval] (check) {满足约束$\calC$?\\收敛?};
+\node[procbox,left=of check] (update) {\textbf{更新代理}\\加入新观测点\\后验更新};
+\node[procbox,right=of check,xshift=0.5cm] (output) {\textbf{输出最优参数}\\$\thetacode^*,\thetahw^*$\\$\to$RTL生成器};
+\draw[arr] (init) -- (propose); \draw[arr] (propose) -- (eval);
+\draw[oarr] (eval) -- (check);
+\draw[arr] (check) -- node[left,font=\scriptsize]{否} (update);
+\draw[arr] (update.west) -- ++(-0.5,0) |- (propose.west);
+\draw[arr] (check) -- node[above,font=\scriptsize]{是} (output);
+\node[above=0.2cm of propose,font=\scriptsize\color{natgray}]{每次迭代~$<$~10~ms};
+\end{tikzpicture}
+\caption{联合离散优化迭代闭环。以代理模型替代耗时仿真，单次评估时间从小时级降至毫秒级。}
+\label{fig:joint_opt}
+\end{figure}
+
+\subsection{RTL代码生成器}\label{sec:rtl_gen}
+
+RTL代码生成器接收最优参数对$(\thetacode^*, \thetahw^*)$，通过三步生成可综合译码器RTL代码：\textbf{（1）参数化模板实例化}：从覆盖主流译码器架构（分层BP、SCL、LDPC全并行/部分并行）的模板库中选择并实例化；\textbf{（2）LLM辅助细粒度代码补全}：对模板参数化不足的模块（自定义交织器、特定流水线结构）调用代码LLM生成RTL片段；\textbf{（3）代理模型闭环验证}：将生成RTL输入硬件代理模型进行``快速预评估''，偏差超过阈值时触发参数微调。最终交付物包含可综合System Verilog代码、综合脚本（Tcl）、预期性能报告与测试向量生成脚本。

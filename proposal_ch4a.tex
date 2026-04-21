@@ -1,0 +1,220 @@
+﻿\section{核心技术框架（上）：通用信道抽象与性能预测}\label{sec:framework_a}
+
+\subsection{系统总体架构}\label{sec:overview}
+
+图~\ref{fig:e2e_pipeline}展示了E3A框架的总体架构。框架由五个核心模块串行协作，形成从自然语言需求到RTL代码的完整闭环。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.75cm,
+  mainbox/.style={rectangle,rounded corners=4pt,draw=natblue,line width=1.2pt,
+    fill=lightblue!55,text width=10.5cm,align=center,inner sep=7pt,font=\small},
+  predbox/.style={rectangle,rounded corners=4pt,draw=natblue!70,line width=1pt,
+    fill=lightblue!30,text width=4.5cm,align=center,inner sep=6pt,font=\small},
+  outbox/.style={rectangle,rounded corners=4pt,draw=natgreen,line width=1.2pt,
+    fill=lightgreen!50,text width=10.5cm,align=center,inner sep=7pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  darr/.style={-Stealth,thick,color=natblue!50,dashed}
+]
+\node[mainbox] (req) at (0,0) {
+  \textbf{自然语言需求 / 标准规范文档输入}\\[3pt]
+  \textit{例："5G URLLC，BER $\leq 10^{-9}$，时延 $\leq$ 1~ms，芯片面积 $\leq$ 2~mm$^2$"}
+};
+\node[mainbox,below=of req] (llm) {
+  \textbf{LLM 需求解析引擎}\\[3pt]
+  检索增强生成（RAG）$+$ 思维链推理（CoT）$+$ 形式化约束验证器
+};
+\node[mainbox,below=of llm] (constr) {
+  \textbf{形式化约束集合 $\calC$}\\[3pt]
+  $\bigl\{\BER \leq 10^{-9},\;\Delta t \leq 1\,\text{ms},\;A \leq 2\,\text{mm}^2,\;
+  P \leq 500\,\text{mW},\;\mathcal{G} \in \{\text{LDPC, Polar}\}\bigr\}$
+};
+\node[predbox] (perf) at (-3.0,-5.6) {
+  \textbf{算法性能代理模型}\\[3pt]DeepONet\\[2pt]
+  \footnotesize $(\thetacode, \calT) \mapsto \BER(\SNR)$
+};
+\node[predbox] (hw) at (3.0,-5.6) {
+  \textbf{硬件性能代理模型}\\[3pt]GNN + MLP\\[2pt]
+  \footnotesize $(\thetahw,\mathrm{Tech}) \mapsto \{A,P,T_d\}$
+};
+\node[mainbox,below=3.2cm of constr] (optim) {
+  \textbf{联合离散优化引擎}\\[3pt]
+  $\displaystyle\min_{\thetacode,\,\thetahw}\hat{g}(\thetahw)\;\text{s.t.}\;
+  \hat{\calF}(\thetacode, \calT) \geq \calC_{\mathrm{perf}}$\\[2pt]
+  贝叶斯优化 $/$ 遗传算法 $/$ 深度强化学习
+};
+\node[mainbox,below=of optim] (rtl) {
+  \textbf{RTL 代码生成器}\\[3pt]
+  参数化译码器硬件模板库 $+$ LLM辅助代码生成 $+$ 代理模型闭环验证
+};
+\node[outbox,below=of rtl] (out) {
+  \textbf{最终交付物}\\[3pt]
+  可综合RTL代码 $+$ 预期BER/FER曲线 $+$ 硬件资源估计报告
+};
+\draw[arr] (req) -- (llm);
+\draw[arr] (llm) -- (constr);
+\draw[arr] (constr.south) -- ++(0,-0.35) -| (perf.north);
+\draw[arr] (constr.south) -- ++(0,-0.35) -| (hw.north);
+\draw[arr] (perf.south) |- (optim.west);
+\draw[arr] (hw.south) |- (optim.east);
+\draw[arr] (optim) -- (rtl);
+\draw[arr] (rtl) -- (out);
+\draw[darr] (optim.west) -- ++(-1.6,0) |- (constr.west)
+  node[pos=0.3,left,font=\scriptsize,color=natblue!60]{迭代反馈};
+\end{tikzpicture}
+\caption{E3A端到端纠错码AI全自动设计框架总体架构。框架由五个核心模块构成，实现从自然语言需求到可综合RTL代码的全自动闭环设计流水线。}
+\label{fig:e2e_pipeline}
+\end{figure}
+
+\subsection{通用信道抽象层}\label{sec:channel_abstraction}
+
+\subsubsection{核心抽象：信道三元组}
+
+E3A框架的理论基础是\textbf{通用信道三元组}表示：
+\begin{equation}
+  \calT = \Bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\Bigr),
+  \label{eq:channel_triplet}
+\end{equation}
+其中$\{\SNR_i\}$为逐bit信噪比序列，$\bvec{R}$为噪声相关性矩阵，$p(x)$为噪声概率密度函数。对于高斯信道（AWGN），三元组退化为单一SNR标量，与经典模型完全兼容。
+
+\begin{table}[htbp]
+\centering
+\caption{五类物理系统与信道三元组的映射关系}
+\label{tab:channel_mapping}
+\setlength{\tabcolsep}{5pt}
+\rowcolors{2}{lightblue!20}{white}
+\begin{tabular}{@{}L{2.2cm}L{3.0cm}L{2.8cm}L{2.8cm}L{2.4cm}@{}}
+\toprule
+\textbf{物理系统} & \textbf{主要噪声来源} & \textbf{SNR序列} & \textbf{相关性矩阵$\bvec{R}$} & \textbf{噪声PDF $p(x)$} \\
+\midrule
+5G/6G无线 & 多径衰落、热噪声 & 逐子载波瞬时SNR & 频域相关 & 高斯（近似） \\
+相干光通信 & 相位噪声、ASE噪声 & 信道相关，均匀 & 弱相关或独立 & 高斯/非高斯 \\
+NAND Flash & 电荷俘获、单元干扰 & 逐单元磨损SNR & 相邻单元强相关 & 混合高斯 \\
+量子比特 & 退相干、Pauli噪声 & 逐量子比特错误率 & 器件近邻相关 & 离散Pauli分布 \\
+忆阻器阵列 & 电导分布、时变漂移 & 逐器件读写SNR & 行/列线寄生耦合 & 非参数分布 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{纠错码性能预测框架}\label{sec:predictor}
+
+图~\ref{fig:neural_operator}展示了神经算子性能预测框架的详细架构，由Branch Net、Trunk Net与DeepONet融合层三部分组成。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  node distance=0.5cm,
+  bnet/.style={rectangle,rounded corners=3pt,draw=natblue,line width=1pt,
+    fill=lightblue!55,text width=5.0cm,align=center,inner sep=5pt,font=\small},
+  tnet/.style={rectangle,rounded corners=3pt,draw=natorange,line width=1pt,
+    fill=lightorange!70,text width=5.0cm,align=center,inner sep=5pt,font=\small},
+  dnet/.style={rectangle,rounded corners=5pt,draw=natgreen,line width=1.5pt,
+    fill=lightgreen!55,text width=10.0cm,align=center,inner sep=8pt,font=\small},
+  outb/.style={rectangle,rounded corners=3pt,draw=natgreen!80!black,line width=1pt,
+    fill=lightgreen!30,text width=10.0cm,align=center,inner sep=6pt,font=\small},
+  arr/.style={-Stealth,thick,color=natblue},
+  oarr/.style={-Stealth,thick,color=natorange},
+  garr/.style={-Stealth,thick,color=natgreen!80!black}
+]
+\node[text=natblue,font=\normalsize\bfseries] (blbl) at (0,0.3) {Branch Net（结构编码器）};
+\node[bnet] (fg) at (0,-0.8) {
+  \textbf{因子图输入}\\[2pt]
+  LDPC基图 / Polar蝶形网络\\
+  \footnotesize 节点特征: $[\text{类型},\deg_v,\SNR_i]$\\
+  \footnotesize 边特征: $[\text{连接类型},\Delta\SNR]$
+};
+\node[bnet,below=of fg] (gt) {
+  \textbf{Graph Transformer}\\[2pt]
+  多头图注意力（$H$ heads）\\
+  \footnotesize 消息传递模拟迭代BP译码\\
+  \footnotesize $L$层交替聚合
+};
+\node[bnet,below=of gt] (pool) {
+  \textbf{全局图读出（Readout）}\\[2pt]
+  \footnotesize 注意力加权池化\\
+  $\zstruct \in \R^{d_s}$
+};
+\node[bnet,below=of pool] (bmlp) {
+  \textbf{Branch MLP}\\[2pt]
+  $\zstruct \xrightarrow{\text{MLP}} \bm{b} \in \R^p$\\
+  \footnotesize $[b_1, b_2, \ldots, b_p]$
+};
+\node[font=\normalsize\bfseries,color=natorange] (tlbl) at (6.5,0.3) {Trunk Net（信道编码器）};
+\node[tnet] (snrenc) at (6.5,-0.8) {
+  \textbf{SNR序列编码器}\\[2pt]
+  $\{\SNR_i\} \xrightarrow{\text{Transformer}}$\\
+  $\bm{f}_{\mathrm{snr}} \in \R^{d_1}$
+};
+\node[tnet,below=of snrenc] (correnc) {
+  \textbf{相关性编码器}\\[2pt]
+  $\bvec{R} \xrightarrow{\text{谱分解}} (\bm{\Lambda},\bvec{V})$\\
+  $\xrightarrow{\text{MLP}} \bm{f}_{\mathrm{corr}} \in \R^{d_2}$
+};
+\node[tnet,below=of correnc] (pdfenc) {
+  \textbf{噪声PDF编码器}\\[2pt]
+  $p(x)$采样序列\\
+  $\xrightarrow{\text{1D-CNN}} \bm{f}_{\mathrm{pdf}} \in \R^{d_3}$
+};
+\node[tnet,below=of pdfenc] (fuse) {
+  \textbf{多模态特征融合}\\[2pt]
+  $\zchannel = \mathrm{Concat}[\bm{f}_{\mathrm{snr}},\bm{f}_{\mathrm{corr}},\bm{f}_{\mathrm{pdf}}]$
+};
+\node[tnet,below=of fuse] (tmlp) {
+  \textbf{Trunk MLP}\\[2pt]
+  $\zchannel \xrightarrow{\text{MLP}} \bm{t} \in \R^p$\\
+  \footnotesize $[t_1, t_2, \ldots, t_p]$
+};
+\node[dnet] (deepo) at (3.25,-11.0) {
+  \textbf{DeepONet 融合层（神经内积）}\\[5pt]
+  $\hat{\calF}(\SNR) = \displaystyle\sum_{i=1}^{p} b_i \cdot t_i = \langle \bm{b},\,\bm{t} \rangle_{\R^p}$\\[4pt]
+  \footnotesize\textit{理论保证：对任意连续算子$\calF$，存在有限$p$使得逼近误差任意小（\cite{lu2021}）}
+};
+\node[outb,below=0.75cm of deepo] (out) {
+  \textbf{输出：性能曲线 $+$ 译码门限}\\[4pt]
+  $\hat{\BER}(\SNR),\;\hat{\FER}(\SNR),\;
+  \SNR^* = \min\{\SNR:\hat{\BER}(\SNR) \leq \epsilon_{\mathrm{target}}\}$
+};
+\draw[arr] (fg) -- (gt); \draw[arr] (gt) -- (pool); \draw[arr] (pool) -- (bmlp);
+\draw[oarr] (snrenc) -- (correnc); \draw[oarr] (correnc) -- (pdfenc);
+\draw[oarr] (pdfenc) -- (fuse); \draw[oarr] (fuse) -- (tmlp);
+\draw[arr] (bmlp.south) -- ++(0,-0.4) -| (deepo.north west);
+\draw[oarr] (tmlp.south) -- ++(0,-0.4) -| (deepo.north east);
+\draw[garr] (deepo) -- (out);
+\draw[decorate,decoration={brace,amplitude=5pt,raise=3pt},color=natorange!70,thick]
+  (snrenc.north east) -- (pdfenc.south east)
+  node[midway,right=9pt,font=\footnotesize,color=natorange!80,align=left]
+    {信道三元组\\$\calT{=}(\{\SNR_i\},\bvec{R},p(x))$};
+\end{tikzpicture}
+\caption{神经算子性能预测框架详细架构。Branch Net以图变换器编码码字的因子图结构，Trunk Net以三路独立编码器处理信道三元组，二者通过DeepONet神经内积融合，输出完整BER/FER性能曲线与译码门限。}
+\label{fig:neural_operator}
+\end{figure}
+
+\subsubsection{Branch Net：码结构编码器}
+
+\textbf{因子图构建}：对于LDPC码，直接从校验矩阵$\bvec{H}$构建二部因子图；对于Polar码，将编码蝶形网络展开为层次化有向因子图。节点特征向量为：
+\begin{equation}
+  \bm{h}_v^{(0)} = \bigl[\mathbf{1}[\text{节点类型}],\;\deg(v),\;\SNR_v,\;\text{码率}R\bigr]^\top,
+  \label{eq:node_feat}
+\end{equation}
+边特征向量为$\bm{e}_{uv} = [\mathbf{1}[\text{连接类型}], |\SNR_u - \SNR_v|]^\top$。
+
+\textbf{Graph Transformer}采用$L$层图变换器交替执行局部消息传递与全局自注意力，其中消息传递步骤模拟置信传播（BP）译码的迭代过程：
+\begin{equation}
+  \bm{h}_v^{(\ell+1)} = \mathrm{LN}\!\left(\bm{h}_v^{(\ell)} + \sum_{u \in \mathcal{N}(v)} \alpha_{vu}^{(\ell)} \cdot \bm{W}_{\mathrm{val}}^{(\ell)} \bm{h}_u^{(\ell)}\right),
+  \label{eq:graph_transformer}
+\end{equation}
+其中$\alpha_{vu}^{(\ell)}$为多头注意力权重，$\mathrm{LN}$为层归一化。
+
+\subsubsection{Trunk Net：信道编码器}
+
+Trunk Net以三路并行编码器独立处理信道三元组：\textbf{SNR序列编码器}使用Transformer处理逐bit SNR序列；\textbf{相关性编码器}对$\bvec{R}$进行谱分解后经MLP编码；\textbf{噪声PDF编码器}将采样密度值视为一维时序信号经1D-CNN提取特征。最终融合为：$\zchannel = \mathrm{Concat}[\bm{f}_{\mathrm{snr}}, \bm{f}_{\mathrm{corr}}, \bm{f}_{\mathrm{pdf}}]$。
+
+\subsubsection{DeepONet融合层}
+
+DeepONet以神经内积结构实现算子逼近：
+\begin{equation}
+  \hat{\calF}(\SNR;\,\thetacode,\calT) = \sum_{i=1}^{p} b_i(\thetacode)\cdot t_i(\calT) = \langle\bm{b}, \bm{t}\rangle.
+  \label{eq:deeponet}
+\end{equation}
+由Chen \& Chen（1995）万能逼近定理\cite{chen1995}，对任意连续紧算子$\calF$，存在有限$p$使得$\|\hat{\calF} - \calF\|_\infty < \varepsilon$。训练时在对数域（$\log_{10}\BER$）计算损失，以处理BER的多数量级跨度。

@@ -1,0 +1,77 @@
+﻿\section{研究计划}\label{sec:plan}
+
+\subsection{四阶段二十四个月研究计划}
+
+\begin{table}[htbp]
+\centering
+\caption{E3A项目四阶段研究计划}
+\label{tab:plan}
+\setlength{\tabcolsep}{5pt}
+\rowcolors{2}{lightblue!15}{white}
+\begin{tabular}{@{}L{1.5cm}L{2.2cm}L{6.5cm}L{2.5cm}@{}}
+\toprule
+\textbf{阶段} & \textbf{时间} & \textbf{主要任务} & \textbf{关键里程碑} \\
+\midrule
+Phase 1 & 第1--6个月 &
+  （1）构建五类信道三元组数据集（AWGN/瑞利/Flash/量子/忆阻器）；
+  （2）建立MC仿真基准标签库（$10^5$组BER/FER数据点）；
+  （3）实现因子图构建工具链（LDPC基图、Polar蝶形图）；
+  （4）完成Graph Transformer基础实现与消融实验
+  &
+  Branch Net完成，$\mathrm{AWGN}$信道BER误差$<0.3$~dB \\
+Phase 2 & 第7--12个月 &
+  （1）完成Trunk Net三路编码器设计与训练；
+  （2）实现DeepONet融合层，完成五信道类型性能预测验证；
+  （3）收集Design Compiler综合数据，训练硬件代理模型；
+  （4）发表会议论文（ICCAD/DAC）
+  &
+  五信道BER误差$<0.1$~dB，面积误差$<5\%$，投稿顶会 \\
+Phase 3 & 第13--18个月 &
+  （1）搭建LLM需求解析引擎（RAG知识库+CoT推理+验证器）；
+  （2）实现联合优化引擎（贝叶斯优化+遗传算法）；
+  （3）完成RTL代码生成器，端到端流水线集成测试；
+  （4）发表期刊论文（Nature MI/Nature Communications）
+  &
+  端到端流水线打通，期刊论文投出 \\
+Phase 4 & 第19--24个月 &
+  （1）量子纠错码与忆阻器信道拓展验证；
+  （2）开源代码库、数据集、预训练模型发布；
+  （3）与工业界合作验证（含芯片流片可行性评估）；
+  （4）撰写综述论文与专利申请
+  &
+  开源发布，专利申请，综述投出 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{里程碑时间线}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.0]
+\def\ybase{0}
+\draw[line width=1.5pt,color=natblue,->] (0,\ybase) -- (13.5,\ybase);
+\foreach \x/\lbl in {0/{M0},2/{M6},4/{M12},6/{M18},8/{M24}} {
+  \draw[natblue,line width=1pt] (\x,\ybase-0.15) -- (\x,\ybase+0.15);
+  \node[below,font=\footnotesize,color=natgray] at (\x,\ybase-0.18) {\lbl};
+}
+\draw[fill=natblue!20,draw=natblue,rounded corners=2pt]
+  (0,\ybase+0.3) rectangle (4,\ybase+1.1);
+\node[font=\scriptsize,align=center] at (2,\ybase+0.7) {Phase 1--2\\数据与模型};
+\draw[fill=natorange!20,draw=natorange,rounded corners=2pt]
+  (4,\ybase+0.3) rectangle (8,\ybase+1.1);
+\node[font=\scriptsize,align=center] at (6,\ybase+0.7) {Phase 3--4\\系统集成};
+\node[above,font=\scriptsize,color=natblue!80] at (2,\ybase+1.15) {$\uparrow$ ICCAD/DAC投稿};
+\node[above,font=\scriptsize,color=natorange!80] at (5.5,\ybase+1.15) {$\uparrow$ Nature MI投稿};
+\node[above,font=\scriptsize,color=natgreen!80] at (8,\ybase+1.15) {$\uparrow$ 开源发布};
+\draw[fill=natgreen!20,draw=natgreen,rounded corners=2pt,dashed]
+  (8,\ybase+0.3) rectangle (10.5,\ybase+1.1);
+\node[font=\scriptsize,align=center] at (9.25,\ybase+0.7) {拓展应用\\量子/忆阻器};
+\end{tikzpicture}
+\caption{E3A项目24个月里程碑时间线。}
+\label{fig:timeline}
+\end{figure}
+
+\subsection{团队需求}
+
+项目需要以下核心成员：（1）\textbf{神经算子与图学习专家}（1名博士生/博后）：负责Branch Net + DeepONet实现；（2）\textbf{VLSI设计与EDA工具专家}（1名博士生）：负责硬件代理数据生成与RTL模板库建设；（3）\textbf{信息论与ECC算法专家}（1名博士生）：负责MC仿真基准与性能验证；（4）\textbf{LLM与系统集成工程师}（1名）：负责解析引擎与端到端集成。\textbf{计算资源需求}：$4\times$NVIDIA A100（训练阶段）+ Synopsys Design Compiler学术授权（综合数据生成）。

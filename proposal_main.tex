@@ -1,0 +1,115 @@
+﻿\documentclass[12pt,a4paper]{article}
+\usepackage[UTF8,fontset=windows]{ctex}
+\usepackage[top=2.5cm,bottom=2.5cm,left=3.0cm,right=2.5cm,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit,calc,backgrounds,decorations.pathreplacing}
+\usepackage{xcolor}
+\definecolor{natblue}{RGB}{0,63,127}
+\definecolor{natblue2}{RGB}{0,100,180}
+\definecolor{natgray}{RGB}{90,90,90}
+\definecolor{natgreen}{RGB}{0,120,60}
+\definecolor{natorange}{RGB}{200,80,0}
+\definecolor{natred}{RGB}{160,0,0}
+\definecolor{lightblue}{RGB}{220,235,250}
+\definecolor{lightgreen}{RGB}{215,240,215}
+\definecolor{lightyellow}{RGB}{255,250,210}
+\definecolor{lightorange}{RGB}{255,230,200}
+\definecolor{lightgray}{RGB}{245,245,245}
+\usepackage{titlesec}
+\titleformat{\section}{\Large\bfseries\color{natblue}}{\thesection}{0.8em}{}[{\color{natblue}\titlerule[0.8pt]}]
+\titleformat{\subsection}{\large\bfseries\color{natblue!85!black}}{\thesubsection}{0.7em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{natblue!65!black}}{\thesubsubsection}{0.6em}{}
+\titlespacing*{\section}{0pt}{20pt}{10pt}
+\titlespacing*{\subsection}{0pt}{14pt}{6pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{4pt}
+\usepackage{booktabs,array,tabularx,multirow,longtable,colortbl}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+\usepackage{enumitem}
+\setlist[itemize]{leftmargin=1.8em,itemsep=2pt,topsep=4pt,parsep=0pt}
+\setlist[enumerate]{leftmargin=1.8em,itemsep=2pt,topsep=4pt,parsep=0pt}
+\usepackage{authblk}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\tcbset{
+  abstractstyle/.style={enhanced,breakable,colframe=natblue,colback=lightblue!50,
+    boxrule=1.2pt,arc=5pt,top=10pt,bottom=10pt,left=12pt,right=12pt,
+    fonttitle=\large\bfseries\color{natblue},
+    attach boxed title to top center={yshift=-3mm},
+    boxed title style={enhanced,colback=white,colframe=natblue,arc=3pt,boxrule=0.8pt}},
+  hypothesisstyle/.style={enhanced,breakable,colframe=natgreen,colback=lightgreen!60,
+    boxrule=1pt,arc=4pt,top=8pt,bottom=8pt,left=10pt,right=10pt},
+  problemstyle/.style={enhanced,breakable,colframe=natorange,colback=lightyellow!80,
+    boxrule=1pt,arc=4pt,top=8pt,bottom=8pt,left=10pt,right=10pt},
+  outcomestyle/.style={enhanced,breakable,colframe=natblue!60,colback=lightblue!30,
+    boxrule=0.8pt,arc=3pt,top=6pt,bottom=6pt,left=8pt,right=8pt}
+}
+\usepackage[colorlinks=true,linkcolor=natblue,citecolor=natblue,urlcolor=natblue2,
+  pdftitle={端到端纠错码AI全自动设计框架}]{hyperref}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancyhead[L]{\small\color{natgray}端到端纠错码AI全自动设计框架}
+\fancyhead[R]{\small\color{natgray}\thepage}
+\fancyfoot[C]{\small\color{natgray}\textit{Nature 投稿提案~$\cdot$~机密}}
+\usepackage{caption}
+\captionsetup{labelfont={bf,color=natblue},font=small,skip=5pt,labelsep=period}
+\usepackage{setspace}
+\setstretch{1.35}
+\setlength{\parskip}{4pt}
+\setlength{\parindent}{2em}
+\theoremstyle{definition}
+\newtheorem{hypothesis}{假说}[section]
+\newtheorem{sciprob}{科学问题}[section]
+\newtheorem{remark}{注记}[section]
+\newcommand{\zstruct}{\bm{z}_{\mathrm{struct}}}
+\newcommand{\zchannel}{\bm{z}_{\mathrm{channel}}}
+\newcommand{\SNR}{\mathrm{SNR}}
+\newcommand{\BER}{\mathrm{BER}}
+\newcommand{\FER}{\mathrm{FER}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\bvec}[1]{\bm{#1}}
+\newcommand{\thetacode}{\bm{\theta}_{\mathrm{code}}}
+\newcommand{\thetahw}{\bm{\theta}_{\mathrm{hw}}}
+\usepackage{microtype}
+\title{
+  {\color{natblue}\rule{\linewidth}{2.5pt}}\\[8pt]
+  {\LARGE\bfseries\color{natblue}端到端纠错码AI全自动设计框架}\\[5pt]
+  {\large\bfseries\color{natblue!80!black}从模糊需求到RTL代码的统一神经算子优化范式}\\[7pt]
+  {\color{natblue!30}\rule{\linewidth}{0.6pt}}\\[4pt]
+  {\normalsize\itshape\color{natgray}
+    A Universal Neural Operator Framework for\\[2pt]
+    End-to-End Error-Correcting Code Algorithm--Hardware Co-Design}\\[5pt]
+  {\color{natblue!20}\rule{\linewidth}{0.4pt}}\\[-6pt]
+}
+\author[1]{\large [第一作者]}
+\author[2]{\large [通讯作者\textsuperscript{*}]}
+\affil[1]{\normalsize\color{natgray}[所在单位一]，[城市]}
+\affil[2]{\normalsize\color{natgray}[所在单位二]，[城市]}
+\date{\normalsize\color{natgray}\textit{研究提案}\quad$\cdot$\quad 2026年4月}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\vspace{-6pt}
+{\color{natgray!50}\hrule height 0.3pt}
+\input{proposal_abstract}
+\newpage
+{\hypersetup{hidelinks}\setstretch{1.1}\tableofcontents}
+\setstretch{1.35}
+\newpage
+\input{proposal_ch1}
+\input{proposal_ch2}
+\input{proposal_ch3}
+\input{proposal_ch4}
+\input{proposal_ch5}
+\input{proposal_ref}
+\end{document}

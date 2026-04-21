@@ -1,0 +1,24 @@
+﻿\vspace{6pt}
+\begin{tcolorbox}[abstractstyle,
+  title={执行摘要 \quad {\normalsize\normalfont\itshape (Executive Summary)}}]
+
+纠错码（Error-Correcting Code, ECC）是支撑现代信息社会的核心基础技术，广泛部署于5G/6G无线通信、相干光纤传输、NAND Flash固态存储、量子计算系统及新型存算一体器件中。然而，现有ECC设计范式面临深刻的结构性困境：\textbf{性能评估}依赖计算代价极高的蒙特卡洛（Monte Carlo）仿真（完整BER曲线评估往往需耗时数小时乃至数天）；\textbf{码型优化}高度依赖领域专家的深厚先验知识与繁琐的解析推导；\textbf{算法与硬件}设计严重脱节，导致大量迭代返工；且面向异质物理系统时缺乏统一的设计框架，难以横向迁移。
+
+\vspace{4pt}
+本提案提出一个\textbf{端到端纠错码AI全自动设计框架}（End-to-End ECC Auto-Design, \textbf{E3A}），从根本上重塑ECC的设计范式。框架的核心创新体现于以下三个维度：
+
+\vspace{4pt}
+\textbf{（一）通用信道抽象（Universal Channel Abstraction）}：我们发现，任意物理系统的噪声特性均可精确表征为统一三元组
+$\calT = \bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\bigr)$，
+分别对应逐bit信噪比序列、噪声相关性矩阵与噪声概率密度函数。这一抽象赋予框架处理无线信道、光纤信道、Flash存储信道、量子噪声信道及忆阻器阵列信道等截然不同的物理系统的天然通用能力。
+
+\vspace{4pt}
+\textbf{（二）神经算子性能预测（Neural Operator Performance Prediction）}：以DeepONet（深度算子网络）为核心，构建将$(\thetacode, \calT)$映射至完整BER/FER性能曲线的泛函逼近器。Branch网络以图变换器（Graph Transformer）编码纠错码的因子图拓扑，Trunk网络以三路独立编码器处理信道三元组，二者经神经内积（$\hat{\calF}(\SNR) = \sum_{i=1}^p b_i \cdot t_i$）融合，可在\textbf{毫秒级}时间内预测完整性能曲线，相较蒙特卡洛仿真实现逾$\mathbf{10^3}$\textbf{倍加速}，预测误差目标优于$\pm 0.1$~dB。
+
+\vspace{4pt}
+\textbf{（三）全链路端到端自动化（Full-Pipeline Automation）}：顶层大语言模型（LLM）引擎理解并形式化来自用户或标准规范文档（如3GPP TS、IEEE 802.11）的模糊需求；联合优化引擎以算法性能代理模型与硬件指标代理模型为双重评价函数，在秒级内完成联合离散优化；RTL代码生成器输出可直接综合的译码器硬件描述代码，最终交付物为\textbf{可综合RTL代码~$+$~预期性能评估报告}。
+
+\vspace{4pt}
+本研究将编码理论、神经算子理论、图学习、大语言模型与硬件设计自动化有机融合，提出一个具有重要理论意义与广泛工程价值的全新研究范式。预期将ECC设计周期从月/年级\textbf{压缩至小时级}，并首次实现面向非专家用户的民主化ECC设计工具，在无线通信、光通信、数据存储、量子计算等多个领域具有深远影响。
+\end{tcolorbox}
+\vspace{4pt}

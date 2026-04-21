@@ -1,0 +1,78 @@
+﻿\section{科学假说与研究目标}\label{sec:hypotheses}
+
+基于对上述四个核心科学问题的分析，我们提出以下四个可证伪的科学假说，并据此确立具体的量化研究目标：
+
+\subsection{科学假说}
+
+\begin{tcolorbox}[hypothesisstyle]
+\textbf{假说 H1（通用信道抽象的完备性）}
+
+任意物理系统中的信道噪声均可由信道三元组
+$\calT = \bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\bigr)$
+精确刻画。基于此三元组表示训练的ECC性能预测模型，在未见过的物理系统（仅提供对应三元组）上的预测误差，与在同类系统上训练的专用模型相当。
+
+\textbf{验证方案}：在五类物理系统上独立获取信道三元组，使用统一模型预测，对比专用模型精度，目标：通用模型精度损失$< 0.2$~dB。
+\end{tcolorbox}
+
+\vspace{4pt}
+\begin{tcolorbox}[hypothesisstyle]
+\textbf{假说 H2（神经算子逼近的有效性）}
+
+从（码结构，信道三元组）到BER/FER性能曲线的映射$\calF: (\calC, \calT) \mapsto \BER(\cdot)$构成一个定义在适当Banach空间上的连续算子，可由DeepONet以任意精度逼近（由DeepONet的万能逼近定理保证~\cite{lu2021}）。具体而言，存在有限参数量的DeepONet模型，能够在给定精度$\epsilon = 0.1$~dB下预测任意LDPC码与Polar码在任意物理信道三元组上的完整BER/FER曲线。
+
+\textbf{验证方案}：构建包含$> 10^6$个（码, 信道, BER曲线）三元组的训练集，训练DeepONet，在独立测试集上验证BER预测RMSE（dB域）$< 0.1$~dB，曲线整体相对误差$< 5\%$。
+\end{tcolorbox}
+
+\vspace{4pt}
+\begin{tcolorbox}[hypothesisstyle]
+\textbf{假说 H3（硬件性能的低维可学习性）}
+
+LDPC/Polar译码器的硬件实现指标（逻辑面积$A$、动态功耗$P$、关键路径时延$T_d$）是码参数与工艺参数的低维可学习函数，可由轻量GNN+MLP代理模型以$< 5\%$相对误差精确预测，同时推理速度较RTL综合工具快$> 100$倍。
+
+\textbf{验证方案}：使用工业综合工具（Design Compiler）生成$> 5000$个设计数据点，训练代理模型，验证面积/功耗预测误差$< 5\%$，时延误差$< 8\%$。
+\end{tcolorbox}
+
+\vspace{4pt}
+\begin{tcolorbox}[hypothesisstyle]
+\textbf{假说 H4（端到端全自动化的可行性）}
+
+通过LLM需求解析引擎、神经算子性能预测器与硬件代理模型、以及参数化RTL生成器的有机组合，可以实现从自然语言需求输入到可综合RTL代码输出的\textbf{全自动闭环设计流水线}，且最终RTL代码在FPGA原型验证中的实测BER性能与代理模型预测值之间的误差$< 0.3$~dB。
+
+\textbf{验证方案}：以5种不同应用场景的自然语言需求为输入，运行完整E3A流水线，最终RTL代码在Xilinx Alveo FPGA平台进行硬件在环（HIL）验证。
+\end{tcolorbox}
+
+\subsection{量化研究目标}\label{sec:objectives}
+
+基于上述假说，本研究设定以下可量化的研究目标，作为项目验收标准：
+
+\begin{table}[htbp]
+\centering
+\caption{E3A框架量化研究目标}
+\label{tab:objectives}
+\rowcolors{2}{lightblue!30}{white}
+\begin{tabular}{@{}L{3.5cm}L{5.0cm}L{3.5cm}@{}}
+\toprule
+\textbf{目标维度} & \textbf{具体指标} & \textbf{目标值} \\
+\midrule
+性能预测精度 & BER曲线预测误差（dB域RMSE） & $< 0.1$~dB \\
+性能预测速度 & 单次BER曲线预测时间 & $< 10$~ms \\
+相对仿真加速比 & vs.\ GPU加速蒙特卡洛 & $> 1000\times$ \\
+硬件面积预测精度 & 逻辑面积相对误差 & $< 5\%$ \\
+硬件功耗预测精度 & 动态功耗相对误差 & $< 5\%$ \\
+端到端优化速度 & 从需求到最优参数（含100次迭代） & $< 10$~min \\
+RTL验证一致性 & FPGA实测vs.预测BER误差 & $< 0.3$~dB \\
+系统通用性 & 成功验证的物理系统类型数 & $\geq 5$ \\
+需求形式化准确率 & 关键约束提取准确率 & $> 95\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{研究范围说明}
+
+本研究聚焦于以下类型的纠错码：
+\begin{itemize}
+  \item \textbf{LDPC码}：包括3GPP NR标准基图（BG1/BG2）及自定义扩展基图
+  \item \textbf{Polar码}：包括标准CRC辅助Polar码（CA-Polar）及PAC码
+\end{itemize}
+
+目标物理系统涵盖：5G无线信道、相干光通信信道、NAND Flash存储信道、量子比特噪声信道（超导体系）及忆阻器存储信道（第\ref{sec:applications}节详述）。
