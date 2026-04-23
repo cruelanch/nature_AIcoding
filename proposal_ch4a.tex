@@ -2,7 +2,7 @@
 
 \subsection{系统总体架构}\label{sec:overview}
 
-图~\ref{fig:e2e_pipeline}展示了E3A框架的总体架构。框架由五个核心模块串行协作，形成从自然语言需求到RTL代码的完整闭环。
+图~\ref{fig:e2e_pipeline}展示了PrimeCoDec框架的总体架构。框架由五个核心模块串行协作，形成从自然语言需求到RTL代码的完整闭环。
 
 \begin{figure}[htbp]
 \centering
@@ -63,7 +63,7 @@
 \draw[darr] (optim.west) -- ++(-1.6,0) |- (constr.west)
   node[pos=0.3,left,font=\scriptsize,color=natblue!60]{迭代反馈};
 \end{tikzpicture}
-\caption{E3A端到端纠错码AI全自动设计框架总体架构。框架由五个核心模块构成，实现从自然语言需求到可综合RTL代码的全自动闭环设计流水线。}
+\caption{PrimeCoDec端到端纠错码AI全自动设计框架总体架构。框架由五个核心模块构成，实现从自然语言需求到可综合RTL代码的全自动闭环设计流水线。}
 \label{fig:e2e_pipeline}
 \end{figure}
 
@@ -71,7 +71,7 @@
 
 \subsubsection{核心抽象：信道三元组}
 
-E3A框架的理论基础是\textbf{通用信道三元组}表示：
+PrimeCoDec框架的理论基础是\textbf{通用信道三元组}表示：
 \begin{equation}
   \calT = \Bigl(\{\SNR_i\}_{i=1}^n,\;\bvec{R} \in \R^{n\times n},\;p(x)\Bigr),
   \label{eq:channel_triplet}
