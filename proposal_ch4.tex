@@ -1,52 +1,64 @@
 ﻿\section{科学贡献与应用前景}\label{sec:contribution}
 
-\subsection{核心创新点}
+\subsection{四大核心创新点}
 
-\textbf{创新点一：通用信道三元组抽象}——首次将任意物理信道统一表示为$(\{\SNR_i\},\bvec{R},p(x))$三元组，打破信道类型壁垒，使单一框架适用于五类截然不同的物理系统（无线、光纤、Flash、量子、忆阻器），从根本上解决ECC设计的跨域迁移难题。
+PrimeCoDec的创新贡献覆盖ECC全设计链路的四个关键层次，各层次均具备独立的科学意义与工程价值，同时在统一框架内深度耦合协同：
 
-\textbf{创新点二：ECC性能神经算子}——首次将DeepONet范式引入纠错码性能预测，以严格的函数空间算子逼近理论为支撑，突破传统点估计局限，实现全SNR曲线高精度预测（BER误差$<0.1$~dB），推理速度较蒙特卡洛仿真提升$>10^3\times$，根本上消解了ECC优化对大规模仿真的依赖。
+\vspace{4pt}
+\textbf{创新点一：编码方案AI自动化（Encoding Layer）}
 
-\textbf{创新点三：算法--硬件联合代理优化}——首次将算法性能代理与硬件性能代理在统一优化框架中联合使用，消除算法-硬件鸿沟，实现帕累托最优的协同设计；尤其支持\textbf{共模架构}设计——以一套硬件同时实现多种码型（如Polar码与LDPC码）的译码，面积预测误差$<5\%$。
+针对当前码型设计高度依赖专家先验知识的困境，PrimeCoDec以\textbf{通用信道三元组}$\calT{=}(\{\SNR_i\},\bvec{R},p(x))$统一表征任意物理信道，并以AI驱动的码型搜索替代专家主导的手工设计。基于因子图的图神经网络编码码结构拓扑，以进化算法与贝叶斯优化在统一信道表示下自动探索LDPC基图与Polar码冻结比特序列的最优配置。这一创新首次使ECC编码方案设计对任意物理信道具备\textbf{领域无关的自动化能力}，无需针对每类系统进行专家重新设计。
 
-\textbf{创新点四：LLM驱动的需求解析与标准生成}——首次在ECC设计中引入RAG+CoT的形式化需求解析链，将自然语言工程规范自动转化为香农极限感知的形式化约束集合；更进一步，首次实现ECC优化结果到工业格式行业标准草案的\textbf{自动逆向映射}，实现非专家可用的"需求到标准"全自动设计入口。
+\vspace{4pt}
+\textbf{创新点二：无仿真译码算法自动优化（Decoding Layer）}
+
+针对性能评估严重依赖耗时蒙特卡洛仿真的困境，PrimeCoDec以\textbf{神经算子（DeepONet）}建立从码结构-信道三元组到完整BER/FER性能曲线的泛函逼近器。Branch网络以图变换器编码码字的因子图拓扑，Trunk网络以三路并行编码器处理信道三元组，二者通过神经内积融合，以极低延迟替代蒙特卡洛仿真，实现对任意码长、码率、译码算法配置（迭代次数、量化位宽、调度策略等）的快速性能预测与自动调优。这一创新从根本上\textbf{破除了ECC优化对大规模仿真的依赖}，将评估-优化闭环从天级压缩至秒级。
+
+\vspace{4pt}
+\textbf{创新点三：算法--硬件协同自动实现（Hardware Layer）}
+
+针对算法优化与硬件实现深度脱节的困境，PrimeCoDec构建\textbf{硬件性能代理模型}（GNN+MLP），建立从码参数、译码算法参数到VLSI实现指标（面积、功耗、时延、吞吐量）的代理映射，并与算法性能代理在统一目标函数下进行\textbf{联合帕累托优化}。框架原生支持\textbf{共模架构}设计——以一套硬件同时实现多种码型（如Polar码与LDPC码）译码，通过联合代理模型在设计空间中自动定位共模最优点。最终由参数化RTL模板库结合LLM代码补全，输出可综合的System Verilog译码器代码。
+
+\vspace{4pt}
+\textbf{创新点四：顶层需求形式化与行业标准自动输出（Standard Layer）}
+
+针对ECC设计闭环缺失顶层输入与标准化输出接口的问题，PrimeCoDec通过两端创新实现从用户到标准的完整通路：\textbf{输入端}，大语言模型（LLM）以RAG知识检索与CoT推理将自然语言模糊需求（或3GPP/IEEE规范文档）自动转化为形式化约束集合，并进行香农极限可行性验证；\textbf{输出端}，框架将最优码型参数、译码算法配置与硬件实现结果自动逆向映射为符合3GPP/IEEE/ITU-T格式的\textbf{行业标准草案文档}，支持多场景标准配置集的批量生成。这一创新首次使ECC设计闭环延伸至标准制定层面，实现真正意义上的``需求到标准''全自动化。
+
+\subsection{PrimeCoDec能力矩阵}
 
 \begin{table}[htbp]
 \centering
-\caption{PrimeCoDec框架与现有方法的核心指标对比}
-\label{tab:outcomes_quant}
-\setlength{\tabcolsep}{5pt}
+\caption{PrimeCoDec框架四层能力矩阵}
+\label{tab:capability}
+\setlength{\tabcolsep}{4pt}
 \rowcolors{2}{lightblue!15}{white}
-\begin{tabular}{@{}L{3.2cm}L{3.5cm}L{3.5cm}L{2.5cm}@{}}
+\begin{tabular}{@{}L{2.8cm}L{3.5cm}L{3.5cm}L{3.0cm}@{}}
 \toprule
-\textbf{指标} & \textbf{当前SOTA} & \textbf{PrimeCoDec目标} & \textbf{提升} \\
+\textbf{技术层次} & \textbf{当前范式局限} & \textbf{PrimeCoDec方式} & \textbf{科学意义} \\
 \midrule
-BER预测误差 & $>0.5$~dB（启发式） & $<0.1$~dB & $>5\times$ \\
-性能评估速度 & 小时级（MC仿真） & $<1$~ms & $>10^6\times$ \\
-设计全流程时间 & 数月（人工） & $<1$小时 & $>10^3\times$ \\
-面积预测误差 & 无代理（DC综合） & $<5\%$ & 首创 \\
-可覆盖信道类型 & 1--2类 & $\geq 5$类 & 首次统一 \\
-自动化程度 & 局部辅助 & 全流程闭环 & 首创 \\
-行业标准自动生成 & 无 & 符合3GPP/IEEE格式 & 首创 \\
+编码设计 & 专家手工设计，高度依赖领域知识 & AI驱动码型搜索，通用信道三元组抽象 & 编码设计民主化 \\
+译码算法 & Monte Carlo仿真，数小时乃至数天 & 神经算子性能预测，极低延迟 & 仿真瓶颈的根本破除 \\
+硬件实现 & 算法-硬件孤立迭代，大量返工 & 联合代理优化，共模架构自动生成 & 首个算法-硬件协同ECC工具 \\
+标准输出 & 无自动化工具，需专家人工撰写 & LLM形式化+自动标准草案生成 & ECC设计延伸至标准化层 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{核心验证案例：超越5G NR标准}\label{sec:5gnr_case}
+\subsection{核心验证场景：以5G NR为基准的完整闭环}\label{sec:5gnr_case}
 
-当前工业界，\textbf{仅有极少数领域}具备经过数十年专家深度打磨的完备行业标准——5G NR无线通信标准（3GPP Release 17\cite{3gpp38212}）正是其中的典范，代表了全球顶尖ECC专家数十年集体智慧的结晶。以此为基准，可以最直观地展示PrimeCoDec框架的能力边界，且该对比天然公平：5G NR标准已被充分优化，没有``未经优化''的先天劣势。
+当前工业界，\textbf{仅有极少数领域}具备经过数十年专家深度打磨的完备行业标准——5G NR无线通信标准（3GPP Release 17\cite{3gpp38212}）正是其中的典范，代表了全球顶尖ECC专家数十年集体智慧的结晶。以此为基准，可以最直观地展示PrimeCoDec框架从需求到标准的全链路能力，且该对比天然公平：5G NR标准已被充分优化，没有``未经优化''的先天劣势。
 
-\textbf{实验设置}：输入PrimeCoDec的原始需求为5G NR eMBB数据信道的典型场景规格（AWGN信道，码长$n \in [1000, 8448]$，码率$R_c \in [1/5, 8/9]$，目标BER$\leq 10^{-5}$，7~nm工艺，芯片面积$\leq 4$~mm$^2$，吞吐量$\geq 10$~Gbps，与3GPP TS 38.212 Release 17规定的参考场景对齐）。框架全自动运行，无人工干预。
+\textbf{场景输入}：以自然语言描述5G NR eMBB数据信道的典型场景规格（AWGN信道，目标BER约束、延迟约束、芯片面积与吞吐量约束，与3GPP TS 38.212 Release 17规定的参考场景对齐）。PrimeCoDec框架全自动运行，无人工干预。
 
-\textbf{主要结果}如下：
-
+\textbf{四层全链路输出}：
 \begin{itemize}
-  \item \textbf{性能超越}：PrimeCoDec自动生成的Polar码与LDPC码在全码率范围内的BER性能均优于3GPP TS 38.212所规定的标准方案，平均编码增益约$0.2$--$0.4$~dB。
-  \item \textbf{译码算法最优化}：框架自动确定当前场景下的最优译码算法配置——Polar码采用增强型SCL（Successive Cancellation List）译码，LDPC码采用分层置信传播（Layered BP）译码，均在性能-复杂度前沿上优于5G NR参考译码器。
-  \item \textbf{共模架构硬件}：PrimeCoDec设计了一套\textbf{共模架构译码器}，在同一硬件平台上同时实现Polar码与LDPC码译码（根据控制信道/数据信道自动切换），相较两套独立硬件节省芯片面积约$35\%$，功耗降低约$28\%$。
-  \item \textbf{标准草案输出}：框架自动生成了符合3GPP文档格式的修订标准草案，包含新的编码序列表、基图参数集与译码器配置建议。
+  \item \textbf{编码层输出}：针对5G NR eMBB场景，PrimeCoDec自动生成Polar码（控制信道）与LDPC码（数据信道）的最优码型参数配置，包括基图结构、码长码率组合与冻结比特序列。
+  \item \textbf{译码层输出}：框架以神经算子扫描全部算法配置空间，自动确定当前场景下的最优译码算法——Polar码采用SCL（Successive Cancellation List）译码，LDPC码采用分层置信传播（Layered BP）译码，并给出最优迭代次数、量化位宽等参数。
+  \item \textbf{硬件层输出}：PrimeCoDec自动生成\textbf{共模架构译码器}——一套硬件平台同时支持Polar码与LDPC码译码（根据控制信道/数据信道需求自动切换），并输出可综合的System Verilog RTL代码与综合脚本。
+  \item \textbf{标准层输出}：框架自动生成符合3GPP文档格式的修订标准草案，包含新的编码序列表、基图参数集与译码器配置建议，形成可直接提交标准委员会审阅的文档。
 \end{itemize}
 
-该案例清晰证明：PrimeCoDec不仅能够\textbf{复现}专家多年积累的高质量设计，更能在其基础上进一步\textbf{超越}，并以极低的时间代价（小时级 vs. 年级）完成从需求到标准的全链路输出。
+这一案例清晰勾勒出PrimeCoDec作为``ECC全链路自动化引擎''的完整能力边界：接受自然语言需求，输出可部署的行业标准，中间全部环节由AI自动完成。
 
 \subsection{跨领域应用前景}\label{sec:applications}
 
@@ -60,16 +72,16 @@ BER预测误差 & $>0.5$~dB（启发式） & $<0.1$~dB & $>5\times$ \\
 \toprule
 \textbf{应用系统} & \textbf{当前痛点} & \textbf{PrimeCoDec解决方式} & \textbf{核心价值} \\
 \midrule
-5G/6G无线 & 标准更迭频繁，设计周期长 & 需求直接输入，自动生成超越5G NR的方案及3GPP标准草案 & 设计周期缩短$>10\times$ \\
-相干光通信 & 非高斯噪声难建模 & 非参数PDF编码器天然适配 & 突破性能瓶颈 \\
-NAND Flash & 磨损噪声分布非平稳 & 逐单元SNR序列精确建模 & 延长存储寿命 \\
+5G/6G无线 & 标准更迭频繁，设计周期长 & 需求直接输入，自动生成最优方案及3GPP标准草案 & 根本压缩设计周期，使能快速标准化 \\
+相干光通信 & 非高斯噪声难建模 & 非参数PDF编码器天然适配 & 突破非高斯信道ECC性能瓶颈 \\
+NAND Flash & 磨损噪声分布非平稳 & 逐单元SNR序列精确建模 & 定制化ECC延长存储寿命 \\
 量子纠错 & 量子码设计无EDA工具 & 三元组适配Pauli信道 & 开辟量子EDA新方向 \\
-忆阻器存算 & 无信道先验模型 & 数据驱动PDF学习 & 使存算一体具备ECC \\
+忆阻器存算 & 无信道先验模型 & 数据驱动PDF学习 & 使存算一体器件具备系统性ECC支撑 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{典型案例：忆阻器存算一体ECC首次设计}。忆阻器阵列目前\textbf{没有任何成熟的ECC适配工具}，现有方案依赖纯经验调试。PrimeCoDec仅凭实测噪声样本（$\sim10^4$个错误样本，核密度估计构建$p(x)$）即可完成设计：将器件特性封装为三元组（非均匀SNR序列+行列线串扰相关性矩阵+非参数PDF），DeepONet预测该新型信道下LDPC码的BER-SNR曲线，直接输出适配该信道的RTL代码，无需预先存在的信道模型。
+\textbf{典型新兴案例：忆阻器存算一体ECC设计}。忆阻器阵列目前\textbf{没有任何成熟的ECC适配工具}，现有方案依赖纯经验调试。PrimeCoDec仅凭实测噪声样本（核密度估计构建$p(x)$）即可完成设计：将器件特性封装为三元组（非均匀SNR序列+行列线串扰相关性矩阵+非参数PDF），神经算子预测该新型信道下LDPC码的性能曲线，自动输出适配该信道的最优码型、译码算法与RTL代码——无需预先存在的信道模型，无需领域专家介入。
 
 \subsection{学术贡献与科学影响}\label{sec:impact}
 
@@ -97,4 +109,4 @@ PrimeCoDec框架的核心科学贡献在于\textbf{确立了信息论与AI深度
 
 \subsubsection{开放科学承诺}
 
-本项目承诺全面开放：\textbf{代码}（GitHub Apache-2.0开源）、\textbf{训练数据}（Zenodo数据仓库，含$>5000$组DC综合结果与$>10^5$组性能预测标签）、\textbf{预训练模型权重}（Hugging Face模型库）、\textbf{基准测试框架}（标准化的五信道类型评估协议）、\textbf{标准生成模板库}（覆盖3GPP/IEEE/ITU-T格式），为后续研究者提供完整可复现的研究基础。
+本项目承诺全面开放：\textbf{代码}（GitHub Apache-2.0开源）、\textbf{训练数据}（Zenodo数据仓库，含大规模DC综合结果与性能预测标签）、\textbf{预训练模型权重}（Hugging Face模型库）、\textbf{基准测试框架}（标准化的五信道类型评估协议）、\textbf{标准生成模板库}（覆盖3GPP/IEEE/ITU-T格式），为后续研究者提供完整可复现的研究基础。

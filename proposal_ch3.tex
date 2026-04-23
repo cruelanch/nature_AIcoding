@@ -220,7 +220,7 @@ DeepONet以神经内积结构实现算子逼近：
   \hat{\calF}(\SNR;\,\thetacode,\calT) = \sum_{i=1}^{p} b_i(\thetacode)\cdot t_i(\calT) = \langle\bm{b}, \bm{t}\rangle.
   \label{eq:deeponet}
 \end{equation}
-由Chen \& Chen（1995）万能逼近定理\cite{chen1995}，对任意连续紧算子$\calF$，存在有限$p$使得$\|\hat{\calF} - \calF\|_\infty < \varepsilon$。Lu等（2021）\cite{lu2021}在\textit{Nature Machine Intelligence}上已验证DeepONet在复杂非线性算子逼近中兼具高精度（误差$<1\%$）与高效推理（加速比$>10^4\times$）。训练时在对数域（$\log_{10}\BER$）计算损失，以处理BER的多数量级跨度。
+由Chen \& Chen（1995）万能逼近定理\cite{chen1995}，对任意连续紧算子$\calF$，存在有限$p$使得$\|\hat{\calF} - \calF\|_\infty < \varepsilon$。Lu等（2021）\cite{lu2021}在\textit{Nature Machine Intelligence}上已验证DeepONet在复杂非线性算子逼近中具备高精度与高效推理能力。训练时在对数域（$\log_{10}\BER$）计算损失，以处理BER的多数量级跨度。
 
 \subsection{硬件性能代理模型}\label{sec:hw_proxy}
 
@@ -232,7 +232,7 @@ DeepONet以神经内积结构实现算子逼近：
 \end{equation}
 其中$n$为码长，$R_c$为码率，$\rho_{\bvec{H}}$为校验矩阵稀疏度，$q$为量化位宽，$N_{\mathrm{iter}}$为最大迭代次数，$L_{\mathrm{tech}}$为工艺节点，$f_{\mathrm{clk}}$为目标时钟频率。
 
-\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。训练数据使用Synopsys Design Compiler在28~nm、7~nm工艺库下对$>5000$个不同配置的LDPC/Polar译码器RTL进行综合生成。
+\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。训练数据使用Synopsys Design Compiler在多个工艺节点（28~nm、7~nm等）下对大规模LDPC/Polar译码器RTL配置集进行综合生成。
 
 图~\ref{fig:channel_hw}展示了通用信道抽象在算法层与硬件层优化中的桥接作用。
 
@@ -317,7 +317,7 @@ PrimeCoDec框架的联合优化问题形式化为：
 \label{eq:joint_opt}
 \end{equation}
 
-由于代理模型的单次推理时间约为毫秒级，$10^4$次模型评估仅需约10秒，实现相较传统方法$>1000\times$的优化速度提升。图~\ref{fig:joint_opt}展示了优化迭代闭环。
+由于代理模型的单次推理时间约为毫秒级，原本计算上不可行的大规模参数搜索成为可能，实现相较传统蒙特卡洛仿真驱动方式数量级以上的优化速度提升。图~\ref{fig:joint_opt}展示了优化迭代闭环。
 
 \begin{figure}[htbp]
 \centering

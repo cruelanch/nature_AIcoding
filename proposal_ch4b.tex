@@ -10,7 +10,7 @@
 \end{equation}
 其中$n$为码长，$R_c$为码率，$\rho_{\bvec{H}}$为校验矩阵稀疏度，$q$为量化位宽，$N_{\mathrm{iter}}$为最大迭代次数，$L_{\mathrm{tech}}$为工艺节点，$f_{\mathrm{clk}}$为目标时钟频率。
 
-\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图（DFG）表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征的图级表示。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。\textbf{训练数据}使用Synopsys Design Compiler在28~nm、7~nm工艺库下对$>5000$个不同配置的LDPC/Polar译码器RTL进行综合生成。
+\textbf{模型架构}：代理模型由两个串联模块构成。\textbf{数据流图编码器（GNN）}将译码器的硬件数据流图（DFG）表示为有向图，使用GNN提取包含检查节点并行度、消息传递路径长度等关键拓扑特征的图级表示。\textbf{性能回归MLP}将GNN提取的特征与工艺参数拼接后，经多层感知机分别预测面积、功耗、时延与吞吐量。\textbf{训练数据}使用Synopsys Design Compiler在28~nm、7~nm工艺库下对大规模LDPC/Polar译码器RTL配置集进行综合生成。
 
 图~\ref{fig:channel_hw}展示了通用信道抽象在算法层与硬件层优化中的桥接作用。
 
@@ -92,7 +92,7 @@ PrimeCoDec框架的联合优化问题形式化为：
 \label{eq:joint_opt}
 \end{equation}
 
-由于代理模型的单次推理时间约为毫秒级，$10^4$次模型评估仅需约10秒，使得原本计算上不可行的大规模参数搜索成为可能，\textbf{实现相较传统方法$>1000\times$的优化速度提升}。图~\ref{fig:joint_opt}展示了优化迭代闭环。
+由于代理模型的单次推理时间约为毫秒级，原本计算上不可行的大规模参数搜索成为可能，实现相较传统蒙特卡洛仿真驱动方式数量级以上的优化速度提升。图~\ref{fig:joint_opt}展示了优化迭代闭环。
 
 \begin{figure}[htbp]
 \centering

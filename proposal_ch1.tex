@@ -1,5 +1,26 @@
 ﻿\section{研究背景与核心动机}\label{sec:background}
 
+\begin{tcolorbox}[hypothesisstyle,
+  title={\normalsize\bfseries\color{natgreen}PrimeCoDec 故事脉络 \quad {\normalfont\itshape Story Narrative}}]
+\textbf{一、问题根源}——纠错码在无线通信、光通信、数据存储、量子计算、存算一体等\textbf{所有信息系统}中不可或缺，但当前设计范式仍停留在``专家手工作坊''模式：过度依赖专家经验、优化严重依赖大规模仿真、算法与硬件深度割裂——三大困境导致ECC设计高度低效，严重制约新兴信息系统的快速部署。
+
+\vspace{6pt}
+\textbf{二、框架主张}——\textbf{PrimeCoDec} 提出：用户仅输入原始需求，框架即可全自动完成从纠错码编码设计、译码算法选择、硬件实现到行业标准输出的全链路自动化，打破ECC设计中一切专家壁垒。
+
+\vspace{6pt}
+\textbf{三、技术支柱}——四个均衡的技术层次共同支撑框架：
+\begin{itemize}[nosep]
+  \item \textbf{编码层}：AI驱动的码型自动搜索与构造（跨域通用信道表示）
+  \item \textbf{译码层}：神经算子替代蒙特卡洛仿真，实现快速算法评估与调优
+  \item \textbf{硬件层}：算法-硬件联合代理优化，支持共模架构自动实现
+  \item \textbf{标准层}：LLM驱动的需求形式化与行业标准草案自动生成
+\end{itemize}
+
+\vspace{6pt}
+\textbf{四、核心验证}——以\textbf{5G NR标准（3GPP Release 17）}为基准，验证PrimeCoDec的全链路能力：从自然语言需求输入，到Polar码/LDPC码最优方案、共模译码器硬件，最终输出修订后的3GPP标准草案——一个完整的从需求到标准的自动化闭环。
+\end{tcolorbox}
+
+\vspace{8pt}
 \subsection{纠错码：横跨全域信息系统的核心基础技术}
 
 纠错码技术诞生于1948年Shannon信息论，历经七十余年发展，已成为数字信息基础设施不可或缺的核心组件——其触角延伸至当今几乎所有信息系统，是横跨无线通信、光通信、数据存储、新型计算乃至量子信息的\textbf{共性底层技术}。
