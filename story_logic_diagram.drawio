@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+
+    <!-- ================================================ -->
+    <!-- LAYER 0: Story Start — ECC Is Universal          -->
+    <!-- ================================================ -->
+    <mxCell id="10" value="&lt;b&gt;纠错码：信息社会全域基础技术&lt;/b&gt;&lt;br&gt;&lt;i&gt;ECC: Universal Infrastructure of the Information Society&lt;/i&gt;&lt;br&gt;&lt;br&gt;无线通信 · 光通信 · 数据存储 · 量子计算 · 存算一体&lt;br&gt;5G NR LDPC/Polar · SD-FEC · NAND Flash · 表面码 · 忆阻器&lt;br&gt;&lt;br&gt;&lt;i&gt;Shannon 1948 → 70年演进 → 五大物理系统全覆盖&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565C0;fontColor=#ffffff;strokeColor=#0D47A1;fontSize=13;fontStyle=1;arcSize=8;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="427" y="40" width="800" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow: Layer 0 → Layer 1 -->
+    <mxCell id="11" value="同一设计范式的三大结构性困境" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#333333;fontStyle=2;fontSize=10;endArrow=block;endFill=1;strokeWidth=2;" edge="1" source="10" target="100" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- LAYER 1: Three Pain Points                        -->
+    <!-- ================================================ -->
+
+    <!-- Pain Point Label Header -->
+    <mxCell id="100" value="&lt;b&gt;三大结构性痛点 | Three Structural Pain Points&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=13;fontStyle=1;fontColor=#B71C1C;" vertex="1" parent="1">
+      <mxGeometry x="577" y="190" width="500" height="30" as="geometry" />
+    </mxCell>
+
+    <!-- Pain Point 1 -->
+    <mxCell id="101" value="&lt;b&gt;痛点 Ⅰ&lt;/b&gt;&lt;br&gt;&lt;b&gt;专家经验壁垒&lt;/b&gt;&lt;br&gt;&lt;i&gt;Expert Knowledge Barrier&lt;/i&gt;&lt;br&gt;&lt;br&gt;• LDPC 基图：环分析+度分布优化+密度进化&lt;br&gt;• Polar 码：Tal-Vardy 算法等深厚理论&lt;br&gt;• 译码参数调优需多年工程积累&lt;br&gt;&lt;br&gt;→ 每出现新系统就要从头高成本设计" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C62828;fontColor=#ffffff;strokeColor=#8B0000;fontSize=11;arcSize=8;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="130" y="240" width="330" height="170" as="geometry" />
+    </mxCell>
+
+    <!-- Pain Point 2 -->
+    <mxCell id="102" value="&lt;b&gt;痛点 Ⅱ&lt;/b&gt;&lt;br&gt;&lt;b&gt;大规模仿真瓶颈&lt;/b&gt;&lt;br&gt;&lt;i&gt;Monte Carlo Simulation Bottleneck&lt;/i&gt;&lt;br&gt;&lt;br&gt;• 一条 BER 曲线需 10¹² 次信道仿真&lt;br&gt;• 典型案例：数小时乃至数天 GPU 运算&lt;br&gt;• 大规模码型参数搜索几乎不可行&lt;br&gt;&lt;br&gt;→ 大量算力浪费在重复仿真上" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E65100;fontColor=#ffffff;strokeColor=#BF360C;fontSize=11;arcSize=8;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="487" y="240" width="330" height="170" as="geometry" />
+    </mxCell>
+
+    <!-- Pain Point 3 (the specifically highlighted one) -->
+    <mxCell id="103" value="&lt;b&gt;痛点 Ⅲ&lt;/b&gt;&lt;br&gt;&lt;b&gt;算法与硬件深度脱节&lt;/b&gt;&lt;br&gt;&lt;i&gt;Algorithm–Hardware Disconnect&lt;/i&gt;&lt;br&gt;&lt;br&gt;• 算法工程师优化 BER 时不考虑硬件代价&lt;br&gt;• 算法确定后硬件端大量返工&lt;br&gt;• 无框架将编译码与 VLSI 设计统一闭环&lt;br&gt;&lt;br&gt;→ 串行孤岛模式：仅 5G NR 等极少领域&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;凭数十年专家投入建立了完备标准" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#AD1457;fontColor=#ffffff;strokeColor=#880E4F;fontSize=11;arcSize=8;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="847" y="240" width="330" height="170" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- LAYER 2: AI Opportunity (Pivot Node)             -->
+    <!-- ================================================ -->
+
+    <!-- Arrows: Pain Points → AI Opportunity -->
+    <mxCell id="201" value="GNN" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;strokeColor=#6A1B9A;fontStyle=2;fontSize=9;endArrow=block;endFill=1;strokeWidth=1.5;dashed=1;" edge="1" source="101" target="200" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="202" value="DeepONet" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6A1B9A;fontStyle=2;fontSize=9;endArrow=block;endFill=1;strokeWidth=1.5;dashed=1;" edge="1" source="102" target="200" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="203" value="硬件代理模型" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;strokeColor=#6A1B9A;fontStyle=2;fontSize=9;endArrow=block;endFill=1;strokeWidth=1.5;dashed=1;" edge="1" source="103" target="200" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- AI Opportunity Node -->
+    <mxCell id="200" value="&lt;b&gt;AI 带来的历史性变革机遇&lt;/b&gt;&lt;br&gt;&lt;i&gt;AI Opportunity: Four Enabling Technologies&lt;/i&gt;&lt;br&gt;&lt;br&gt;① &lt;b&gt;GNN&lt;/b&gt; → 因子图结构学习，解决专家依赖（痛点Ⅰ）&lt;br&gt;② &lt;b&gt;神经算子 DeepONet/FNO&lt;/b&gt; → 泛函逼近，替代仿真（痛点Ⅱ）&lt;br&gt;③ &lt;b&gt;LLM（GPT-4o/Claude）&lt;/b&gt; → 需求理解与代码生成，打通语义鸿沟&lt;br&gt;④ &lt;b&gt;硬件代理模型（GNN+MLP）&lt;/b&gt; → 轻量预测 VLSI 指标，弥合割裂（痛点Ⅲ）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6A1B9A;fontColor=#ffffff;strokeColor=#4A148C;fontSize=11;arcSize=8;align=left;verticalAlign=middle;spacingLeft=10;" vertex="1" parent="1">
+      <mxGeometry x="327" y="470" width="1000" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow: AI Opportunity → PrimeCoDec -->
+    <mxCell id="204" value="四大技术精准映射三大痛点 → 统一框架" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#1B5E20;fontStyle=1;fontSize=11;endArrow=block;endFill=1;strokeWidth=3;" edge="1" source="200" target="300" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- LAYER 3: PrimeCoDec Framework                    -->
+    <!-- ================================================ -->
+
+    <!-- PrimeCoDec Header -->
+    <mxCell id="300" value="&lt;b&gt;PrimeCoDec — 全链路 AI 自动化框架&lt;/b&gt;&lt;br&gt;&lt;i&gt;Full-Pipeline AI Co-Design for Coding and Decoding&lt;/i&gt;&lt;br&gt;&lt;br&gt;用户仅需自然语言输入需求 → 框架全自动输出：最优纠错码方案 + 译码算法 + 可综合 RTL + 行业标准草案" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1B5E20;fontColor=#ffffff;strokeColor=#004D40;fontSize=12;arcSize=8;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="327" y="660" width="1000" height="80" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows between sub-layers -->
+    <mxCell id="311" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#2E7D32;endArrow=block;endFill=1;strokeWidth=2;" edge="1" source="301" target="302" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="312" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#2E7D32;endArrow=block;endFill=1;strokeWidth=2;" edge="1" source="302" target="303" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="313" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#2E7D32;endArrow=block;endFill=1;strokeWidth=2;" edge="1" source="303" target="304" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Feedback loop arrow -->
+    <mxCell id="314" value="迭代反馈 / Iterative Feedback" style="edgeStyle=elbowEdgeStyle;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#388E3C;fontStyle=2;fontSize=9;endArrow=block;endFill=0;strokeWidth=1.5;dashed=1;exitPerimeter=0;entryPerimeter=0;" edge="1" source="303" target="301" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="220" y="930" />
+          <mxPoint x="220" y="810" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- Sub-layer 3-1: Encoding -->
+    <mxCell id="301" value="&lt;b&gt;编码层（Layer 1）&lt;/b&gt; | &lt;i&gt;Encoding Layer: AI-Driven Code Construction&lt;/i&gt;&lt;br&gt;&lt;br&gt;• 通用信道三元组 T = ({SNRᵢ}, R, p(x)) 统一表征任意物理信道&lt;br&gt;• 基于因子图的 GNN 编码码结构拓扑&lt;br&gt;• 进化算法 + 贝叶斯优化自动探索 LDPC 基图 / Polar 冻结比特序列&lt;br&gt;→ &lt;b&gt;输出：领域无关的最优码型参数，无需专家干预&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2E7D32;fontColor=#ffffff;strokeColor=#1B5E20;fontSize=11;arcSize=5;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="327" y="800" width="1000" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- Sub-layer 3-2: Decoding -->
+    <mxCell id="302" value="&lt;b&gt;译码层（Layer 2）&lt;/b&gt; | &lt;i&gt;Decoding Layer: Neural Operator — No Simulation&lt;/i&gt;&lt;br&gt;&lt;br&gt;• DeepONet：Branch 网络（图变换器编码因子图）+ Trunk 网络（三路并行编码信道三元组）+ 神经内积融合&lt;br&gt;• 替代蒙特卡洛仿真，评估-优化闭环从天级压缩至秒级&lt;br&gt;• 自动调优迭代次数、量化位宽、调度策略等译码参数&lt;br&gt;→ &lt;b&gt;输出：最优译码算法配置（SCL for Polar / 分层 BP for LDPC）&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#388E3C;fontColor=#ffffff;strokeColor=#2E7D32;fontSize=11;arcSize=5;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="327" y="960" width="1000" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- Sub-layer 3-3: Hardware -->
+    <mxCell id="303" value="&lt;b&gt;硬件层（Layer 3）&lt;/b&gt; | &lt;i&gt;Hardware Layer: Joint Algorithm–Hardware Surrogate Optimization&lt;/i&gt;&lt;br&gt;&lt;br&gt;• 硬件性能代理（GNN+MLP）：码参数/算法参数 → VLSI 指标 {面积 A, 功耗 P, 时延 Td, 吞吐量 Γ}&lt;br&gt;• 与算法代理在统一目标函数下联合帕累托优化&lt;br&gt;• 原生支持共模架构：一套硬件同时实现 Polar + LDPC 译码&lt;br&gt;• 参数化 RTL 模板库 + LLM 辅助代码补全&lt;br&gt;→ &lt;b&gt;输出：可综合 SystemVerilog RTL 代码 + 综合脚本&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#43A047;fontColor=#ffffff;strokeColor=#388E3C;fontSize=11;arcSize=5;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="327" y="1120" width="1000" height="110" as="geometry" />
+    </mxCell>
+
+    <!-- Sub-layer 3-4: Standard -->
+    <mxCell id="304" value="&lt;b&gt;标准层（Layer 4）&lt;/b&gt; | &lt;i&gt;Standard Layer: LLM Formalization &amp; Auto-Standard Generation&lt;/i&gt;&lt;br&gt;&lt;br&gt;• 输入端：LLM（RAG + CoT）将自然语言需求 / 3GPP 规范 → 形式化约束集合 C（含香农极限可行性验证）&lt;br&gt;• 输出端：最优方案逆向映射为 3GPP / IEEE / ITU-T 格式行业标准草案&lt;br&gt;• 支持多场景标准配置集批量生成&lt;br&gt;→ &lt;b&gt;输出：可直接提交标准委员会审阅的规范草案文档&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#66BB6A;fontColor=#1A237E;strokeColor=#43A047;fontSize=11;arcSize=5;align=left;verticalAlign=middle;spacingLeft=8;" vertex="1" parent="1">
+      <mxGeometry x="327" y="1290" width="1000" height="110" as="geometry" />
+    </mxCell>
+
+    <!-- Arrow: Framework → Validation -->
+    <mxCell id="315" value="框架全链路能力验证" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#E65100;fontStyle=1;fontSize=11;endArrow=block;endFill=1;strokeWidth=3;" edge="1" source="304" target="400" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- LAYER 4: Validation — Beat 3GPP                 -->
+    <!-- ================================================ -->
+
+    <!-- Validation Header -->
+    <mxCell id="400" value="&lt;b&gt;核心验证场景：击败 3GPP 5G NR 标准（Release 17）&lt;/b&gt;&lt;br&gt;&lt;i&gt;Validation: Surpassing the 3GPP 5G NR Standard — The Fairest Possible Benchmark&lt;/i&gt;&lt;br&gt;&lt;br&gt;选择理由：5G NR 代表全球顶尖 ECC 专家数十年集体智慧结晶，对比天然公平且极具说服力" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E65100;fontColor=#ffffff;strokeColor=#BF360C;fontSize=12;arcSize=8;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="327" y="1470" width="1000" height="90" as="geometry" />
+    </mxCell>
+
+    <!-- Validation Steps -->
+    <mxCell id="401" value="Step 1 — 输入&lt;br&gt;自然语言描述 5G NR eMBB 场景规格&lt;br&gt;（AWGN，目标 BER，时延，面积约束，&lt;br&gt;与 3GPP TS 38.212 Rel-17 对齐）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;fontColor=#333333;strokeColor=#E65100;fontSize=10;arcSize=5;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="130" y="1620" width="240" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="402" value="Step 2 — 编码层输出&lt;br&gt;自动生成 Polar 码（控制信道）&lt;br&gt;和 LDPC 码（数据信道）最优&lt;br&gt;码型参数配置" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;fontColor=#333333;strokeColor=#E65100;fontSize=10;arcSize=5;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="410" y="1620" width="240" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="403" value="Step 3 — 译码层输出&lt;br&gt;神经算子扫描算法配置空间&lt;br&gt;自动确定 SCL（Polar）/ 分层 BP（LDPC）&lt;br&gt;及最优迭代次数/量化位宽" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;fontColor=#333333;strokeColor=#E65100;fontSize=10;arcSize=5;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="690" y="1620" width="240" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="404" value="Step 4 — 硬件层输出&lt;br&gt;自动生成共模架构译码器 RTL&lt;br&gt;（一套硬件 Polar+LDPC）&lt;br&gt;+ 综合脚本" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;fontColor=#333333;strokeColor=#E65100;fontSize=10;arcSize=5;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="970" y="1620" width="240" height="100" as="geometry" />
+    </mxCell>
+    <mxCell id="405" value="Step 5 — 标准层输出&lt;br&gt;自动生成符合 3GPP 格式的&lt;br&gt;修订标准草案（编码序列表、&lt;br&gt;基图参数集、译码器配置建议）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;fontColor=#333333;strokeColor=#E65100;fontSize=10;arcSize=5;align=center;verticalAlign=middle;" vertex="1" parent="1">
+      <mxGeometry x="1250" y="1620" width="240" height="100" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows between validation steps -->
+    <mxCell id="411" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="401" target="402" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="412" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="402" target="403" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="413" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="403" target="404" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="414" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="404" target="405" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows from validation header to steps -->
+    <mxCell id="421" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#BDBDBD;endArrow=block;endFill=0;strokeWidth=1;dashed=1;" edge="1" source="400" target="401" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="422" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.37;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#BDBDBD;endArrow=block;endFill=0;strokeWidth=1;dashed=1;" edge="1" source="400" target="402" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="423" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#BDBDBD;endArrow=block;endFill=0;strokeWidth=1;dashed=1;" edge="1" source="400" target="403" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="424" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.63;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#BDBDBD;endArrow=block;endFill=0;strokeWidth=1;dashed=1;" edge="1" source="400" target="404" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="425" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#BDBDBD;endArrow=block;endFill=0;strokeWidth=1;dashed=1;" edge="1" source="400" target="405" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- Validation Conclusion -->
+    <mxCell id="430" value="&lt;b&gt;验证结论：PrimeCoDec 全程零专家干预，编码性能与硬件实现全面对标并超越 3GPP 5G NR 当前最优方案&lt;/b&gt;&lt;br&gt;&lt;i&gt;Conclusion: PrimeCoDec matches or exceeds the fully-optimized 3GPP standard with zero expert intervention&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F57F17;fontColor=#ffffff;strokeColor=#E65100;fontSize=11;arcSize=8;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="327" y="1780" width="1000" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows: steps → conclusion -->
+    <mxCell id="431" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.15;entryY=1;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=none;strokeWidth=1;" edge="1" source="401" target="430" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="432" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.37;entryY=1;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=none;strokeWidth=1;" edge="1" source="402" target="430" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="433" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=none;strokeWidth=1;" edge="1" source="403" target="430" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="434" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.63;entryY=1;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=none;strokeWidth=1;" edge="1" source="404" target="430" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="435" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=1;entryDx=0;entryDy=0;strokeColor=#E65100;endArrow=none;strokeWidth=1;" edge="1" source="405" target="430" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="436" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#00695C;endArrow=block;endFill=1;strokeWidth=2;" edge="1" source="430" target="500" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- LAYER 5: Application Domains                     -->
+    <!-- ================================================ -->
+
+    <!-- Applications Header -->
+    <mxCell id="500" value="&lt;b&gt;跨领域应用拓展 — 回扣故事起点的五大物理系统&lt;/b&gt;&lt;br&gt;&lt;i&gt;Application Domains: Closing the Loop Across All Five Physical Systems&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#004D40;fontColor=#ffffff;strokeColor=#00695C;fontSize=12;arcSize=8;align=center;verticalAlign=middle;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="327" y="1920" width="1000" height="70" as="geometry" />
+    </mxCell>
+
+    <!-- Application 1: 5G/6G -->
+    <mxCell id="501" value="&lt;b&gt;① 5G/6G 无线通信&lt;/b&gt;&lt;br&gt;&lt;br&gt;痛点：标准更迭频繁，设计周期长&lt;br&gt;方案：需求直接输入 → 自动生成最优方案 + 3GPP 草案&lt;br&gt;&lt;b&gt;价值：根本压缩设计周期，使能快速标准化&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00695C;fontColor=#ffffff;strokeColor=#004D40;fontSize=10;arcSize=5;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="107" y="2060" width="280" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Application 2: Optical -->
+    <mxCell id="502" value="&lt;b&gt;② 相干光通信（400G/800G）&lt;/b&gt;&lt;br&gt;&lt;br&gt;痛点：非高斯噪声难以建模&lt;br&gt;方案：非参数 PDF 编码器天然适配&lt;br&gt;&lt;b&gt;价值：突破非高斯信道 ECC 性能瓶颈&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00695C;fontColor=#ffffff;strokeColor=#004D40;fontSize=10;arcSize=5;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="407" y="2060" width="280" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Application 3: Flash -->
+    <mxCell id="503" value="&lt;b&gt;③ NAND Flash 存储&lt;/b&gt;&lt;br&gt;&lt;br&gt;痛点：磨损噪声分布非平稳&lt;br&gt;方案：逐单元 SNR 序列精确建模&lt;br&gt;&lt;b&gt;价值：定制化 ECC 延长 QLC Flash 寿命&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00695C;fontColor=#ffffff;strokeColor=#004D40;fontSize=10;arcSize=5;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="707" y="2060" width="280" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Application 4: Quantum -->
+    <mxCell id="504" value="&lt;b&gt;④ 量子纠错（QECC）&lt;/b&gt;&lt;br&gt;&lt;br&gt;痛点：量子码设计完全无 EDA 工具&lt;br&gt;方案：通用三元组适配 Pauli 信道&lt;br&gt;&lt;b&gt;价值：开辟量子 EDA 新方向&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00695C;fontColor=#ffffff;strokeColor=#004D40;fontSize=10;arcSize=5;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="1007" y="2060" width="280" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Application 5: Memristor -->
+    <mxCell id="505" value="&lt;b&gt;⑤ 忆阻器存算一体&lt;/b&gt;&lt;br&gt;&lt;br&gt;痛点：无任何成熟 ECC 工具，无信道先验&lt;br&gt;方案：仅凭实测样本（核密度估计 p(x)）完成设计&lt;br&gt;&lt;b&gt;价值：赋能下一代存算一体芯片可靠性&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#00695C;fontColor=#ffffff;strokeColor=#004D40;fontSize=10;arcSize=5;align=left;verticalAlign=middle;spacingLeft=6;" vertex="1" parent="1">
+      <mxGeometry x="1307" y="2060" width="280" height="120" as="geometry" />
+    </mxCell>
+
+    <!-- Arrows: Applications Header → Each App -->
+    <mxCell id="511" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.13;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#26A69A;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="500" target="501" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="512" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.32;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#26A69A;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="500" target="502" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="513" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#26A69A;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="500" target="503" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="514" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.68;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#26A69A;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="500" target="504" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="515" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;exitX=0.87;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#26A69A;endArrow=block;endFill=1;strokeWidth=1.5;" edge="1" source="500" target="505" parent="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- Narrative Closure Arrow: Apps → Story Start      -->
+    <!-- ================================================ -->
+    <mxCell id="600" value="叙事闭环：框架解决的是横跨所有信息系统的共性问题&lt;br&gt;&lt;i&gt;Narrative Loop: PrimeCoDec addresses a universal challenge across all information systems&lt;/i&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#1565C0;fontStyle=2;fontSize=9;endArrow=block;endFill=0;strokeWidth=1.5;dashed=1;exitPerimeter=0;entryPerimeter=0;" edge="1" source="500" target="10" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1600" y="1955" />
+          <mxPoint x="1600" y="90" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+
+    <!-- ================================================ -->
+    <!-- Title Box                                        -->
+    <!-- ================================================ -->
+    <mxCell id="999" value="&lt;b&gt;PrimeCoDec 故事逻辑框图&lt;/b&gt;&lt;br&gt;Story Logic Diagram — Nature Level Narrative&lt;br&gt;&lt;i&gt;各行业纠错码 → 三大痛点 → AI机遇 → 解决方案 → 击败3GPP验证 → 跨领域应用拓展&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=0;strokeColor=#333333;fillColor=#F5F5F5;fontSize=14;fontColor=#333333;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="427" y="-90" width="800" height="80" as="geometry" />
+    </mxCell>
+
+  </root>
+</mxGraphModel>
