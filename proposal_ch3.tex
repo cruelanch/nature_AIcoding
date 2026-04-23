@@ -2,7 +2,7 @@
 
 \subsection{PrimeCoDec系统总体架构}\label{sec:overview}
 
-图~\ref{fig:e2e_pipeline}展示了PrimeCoDec框架的总体架构。框架由六个核心模块串行协作，形成从用户原始需求到行业标准草案的完整闭环。
+图~\ref{fig:e2e_pipeline}展示了PrimeCoDec框架的总体架构。框架由五个核心功能模块串行协作，形成从用户原始需求到行业标准草案的完整闭环：LLM需求解析、联合代理优化（含算法与硬件双代理）、RTL代码生成、行业标准生成，以及贯穿全程的形式化约束传递机制。
 
 \begin{figure}[htbp]
 \centering
@@ -66,7 +66,7 @@
 \draw[arr] (rtl) -- (std);
 \draw[arr] (std) -- (out);
 \draw[darr] (optim.west) -- ++(-1.5,0) |- (constr.west)
-  node[pos=0.3,left,font=\scriptsize,color=natblue!60]{迭代\\反馈};
+  node[pos=0.3,left,font=\scriptsize,color=natblue!60]{迭代反馈};
 \end{tikzpicture}
 \caption{PrimeCoDec端到端纠错码AI全自动化框架总体架构。六个核心模块形成从用户原始需求到行业标准草案的完整闭环。}
 \label{fig:e2e_pipeline}
