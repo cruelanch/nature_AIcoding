@@ -76,20 +76,24 @@ PAL = dict(
 # ─────────────────────────────────────────────────────────────────────────────
 plt.rcParams.update({
     "font.family"        : "DejaVu Sans",
-    "font.size"          : 9,
-    "axes.titlesize"     : 10,
+    "font.size"          : 11,
+    "axes.titlesize"     : 13,
     "axes.titleweight"   : "bold",
-    "axes.labelsize"     : 9,
+    "axes.labelsize"     : 11,
     "axes.labelcolor"    : PAL["text_mid"],
     "axes.edgecolor"     : "#B0BAC8",
-    "axes.linewidth"     : 0.8,
+    "axes.linewidth"     : 1.5,
     "xtick.color"        : PAL["text_mid"],
     "ytick.color"        : PAL["text_mid"],
-    "xtick.labelsize"    : 8,
-    "ytick.labelsize"    : 8,
+    "xtick.labelsize"    : 10,
+    "ytick.labelsize"    : 10,
+    "xtick.major.width"  : 1.5,
+    "ytick.major.width"  : 1.5,
+    "xtick.major.size"   : 5,
+    "ytick.major.size"   : 5,
     "grid.color"         : PAL["grid"],
-    "grid.linewidth"     : 0.6,
-    "legend.fontsize"    : 8,
+    "grid.linewidth"     : 0.8,
+    "legend.fontsize"    : 10,
     "legend.framealpha"  : 0.9,
     "figure.facecolor"   : PAL["fig_bg"],
     "axes.facecolor"     : PAL["ax_bg"],
@@ -118,25 +122,25 @@ def load_data(path: str):
 # FIGURE / AXES SETUP
 # ─────────────────────────────────────────────────────────────────────────────
 def build_figure():
-    fig = plt.figure(figsize=(18, 9.5))
+    fig = plt.figure(figsize=(18, 11))
     fig.patch.set_facecolor(PAL["fig_bg"])
 
-    # GridSpec: left column = H matrix (full height); right = 2 × 2 grid
+    # GridSpec: top row = H matrix (full width); bottom = 2 × 2 grid
     outer = gridspec.GridSpec(
-        1, 2,
+        2, 1,
         figure=fig,
-        left=0.05, right=0.97,
-        top=0.92,  bottom=0.08,
-        wspace=0.32,
-        width_ratios=[1, 1.55],
+        left=0.06, right=0.97,
+        top=0.93,  bottom=0.07,
+        hspace=0.50,
+        height_ratios=[0.8, 1.2],
     )
 
-    ax_H = fig.add_subplot(outer[0, 0])
+    ax_H = fig.add_subplot(outer[0])
 
     inner = gridspec.GridSpecFromSubplotSpec(
         2, 2,
-        subplot_spec=outer[0, 1],
-        hspace=0.42, wspace=0.35,
+        subplot_spec=outer[1],
+        hspace=0.50, wspace=0.38,
     )
     ax_thr  = fig.add_subplot(inner[0, 0])
     ax_cmp  = fig.add_subplot(inner[0, 1])
@@ -145,7 +149,7 @@ def build_figure():
 
     for ax in (ax_H, ax_thr, ax_cmp, ax_fer, ax_avg):
         ax.set_facecolor(PAL["ax_bg"])
-        ax.tick_params(which="both", direction="in", length=3)
+        ax.tick_params(which="both", direction="in", length=4, width=1.5)
 
     return fig, ax_H, ax_thr, ax_cmp, ax_fer, ax_avg
 
@@ -170,7 +174,7 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
         binary,
         cmap=cmap_two,
         vmin=0, vmax=1,
-        aspect="equal",
+        aspect="auto",
         interpolation="nearest",
         origin="upper",
     )
@@ -185,11 +189,11 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
     ax.set_ylim(rows - 0.5, -0.5)
     ax.set_xticks(np.arange(0, cols, 5))
     ax.set_yticks(np.arange(rows))
-    ax.set_yticklabels([str(i) for i in range(rows)], fontsize=7)
-    ax.set_xticklabels([str(i) for i in range(0, cols, 5)], fontsize=7)
-    ax.set_xlabel("Column index", labelpad=3)
-    ax.set_ylabel("Row index", labelpad=3)
-    ax.set_title("Shift-Value Matrix  H  (13 × 35)", color=PAL["text_dark"], pad=5)
+    ax.set_yticklabels([str(i) for i in range(rows)], fontsize=10)
+    ax.set_xticklabels([str(i) for i in range(0, cols, 5)], fontsize=10)
+    ax.set_xlabel("Column index", labelpad=4)
+    ax.set_ylabel("Row index", labelpad=4)
+    ax.set_title("Shift-Value Matrix  H  (13 × 35)", color=PAL["text_dark"], pad=6)
 
     return img
 
@@ -205,22 +209,25 @@ def setup_scalar_ax(ax, title: str, ylabel: str, color: str):
     ax.set_axisbelow(True)
 
 
-def update_scalar(ax, xs, ys, color: str, marker_color: str, ylabel: str, title: str):
+def update_scalar(ax, xs, ys, color: str, marker_color: str, ylabel: str, title: str,
+                  total_rounds: int = None):
     ax.cla()
     setup_scalar_ax(ax, title, ylabel, color)
     if len(xs) == 0:
         return
     ax.plot(xs, ys,
-            color=color, linewidth=1.4, alpha=0.85,
-            marker="o", markersize=4, markerfacecolor=marker_color,
-            markeredgewidth=0.6, markeredgecolor="white", zorder=4)
+            color=color, linewidth=1.8, alpha=0.85,
+            marker="o", markersize=5, markerfacecolor=marker_color,
+            markeredgewidth=0.8, markeredgecolor="white", zorder=4)
     # fill under
     ax.fill_between(xs, ys, min(ys) - 0.01 * abs(min(ys) + 1e-9),
                     color=color, alpha=0.10)
     # highlight last point
     if len(xs) >= 1:
         ax.scatter([xs[-1]], [ys[-1]], color=marker_color,
-                   s=40, zorder=5, edgecolors="white", linewidths=0.8)
+                   s=55, zorder=5, edgecolors="white", linewidths=1.0)
+    if total_rounds is not None:
+        ax.set_xlim(-total_rounds * 0.02, total_rounds * 1.04)
     ax.margins(x=0.04, y=0.12)
     ax.grid(True)
 
@@ -295,7 +302,7 @@ def update_curves(ax, ebn0, initial_curve, history_curves, current_curve,
                    alpha=0.6, label=f"Previous ({len(history_curves)})"))
     if legend_handles:
         ax.legend(handles=legend_handles, loc="upper right",
-                  framealpha=0.9, edgecolor="#B0BAC8", fontsize=7.5)
+                  framealpha=0.9, edgecolor="#B0BAC8", fontsize=10)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN
@@ -307,13 +314,15 @@ def main():
     (N, H_mats, iter_nums, thresholds,
      complexities, fer_curves, avgit_curves, ebn0) = load_data(MAT_FILE)
 
+    total_rounds: int = max(iter_nums) if iter_nums else 200
+
     fig, ax_H, ax_thr, ax_cmp, ax_fer, ax_avg = build_figure()
 
     # ── static super-title with round counter ──
     title_text = fig.suptitle(
-        "LDPC Code Optimization  —  Round 0",
-        fontsize=13, fontweight="bold",
-        color=PAL["text_dark"], y=0.975,
+        f"LDPC Code Optimization  —  Round 0 / {total_rounds}",
+        fontsize=14, fontweight="bold",
+        color=PAL["text_dark"], y=0.985,
     )
 
     # ── pre-build running lists for scalar plots ──
@@ -333,7 +342,7 @@ def main():
 
         # header
         title_text.set_text(
-            "LDPC Code Optimization  —  Round {:d}".format(iter_nums[frame])
+            f"LDPC Code Optimization  —  Round {iter_nums[frame]:d} / {total_rounds:d}"
         )
 
         # ── H matrix ──
@@ -346,10 +355,12 @@ def main():
 
         update_scalar(ax_thr, xs_shown, thr_shown,
                       PAL["threshold"], PAL["threshold_pt"],
-                      "Threshold (dB)", "Decoding Threshold")
+                      "Threshold (dB)", "Decoding Threshold",
+                      total_rounds=total_rounds)
         update_scalar(ax_cmp, xs_shown, cmp_shown,
                       PAL["complexity"], PAL["complexity_pt"],
-                      "Complexity index", "Normalised Complexity")
+                      "Complexity index", "Normalised Complexity",
+                      total_rounds=total_rounds)
 
         # ── curve plots ──
         initial_fer  = fer_curves[0]
@@ -386,11 +397,11 @@ def main():
     # ── add a progress bar / instruction strip at the bottom ──
     fig.text(
         0.5, 0.012,
-        "Each frame represents one saved optimisation state  |  "
+        "Each interval between frames represents one optimisation round  |  "
         f"Interval: {UPDATE_INTERVAL_MS / 1000:.1f} s  |  "
-        "Optimisation rounds: 0 → 200",
+        f"Total optimisation rounds: {total_rounds}",
         ha="center", va="bottom",
-        fontsize=7.5, color=PAL["text_mid"], style="italic",
+        fontsize=9, color=PAL["text_mid"], style="italic",
     )
 
     plt.show()
