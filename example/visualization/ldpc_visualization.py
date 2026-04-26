@@ -2,15 +2,17 @@
 """
 LDPC Code Optimization Process — Dynamic Visualization
 =======================================================
-Reads H_SV_RES.mat from the sibling 'example' folder and animates the
-LDPC optimization trajectory across up to 50 saved states.
+Reads H_SV_RES.mat from the parent 'example' folder and animates the
+LDPC optimization trajectory across all 200 optimization rounds.
 
-Six sub-plots on one figure:
-  • Shift-value matrix  (H, 13 × 35)
-  • Decoding threshold  (dB, time-series)
-  • Normalized complexity (time-series)
-  • FER curves          (Eb/N0 sweep, accumulated)
-  • Average-iteration curves (same convention as FER)
+Layout (top → bottom):
+  • Shift-value matrix  (H, 13 × 35)  — full width
+  • Decoding threshold  |  Normalized complexity   (time-series)
+  • FER curves          |  Average-iteration curves
+
+The animation runs for exactly TOTAL_ROUNDS frames (one per optimization
+round). Plots are refreshed only when the round counter reaches a saved
+checkpoint; the round counter in the title updates every frame.
 
 Run:
     python ldpc_visualization.py
@@ -20,6 +22,7 @@ Configuration constants are near the top of this file.
 
 import os
 import sys
+import bisect
 import warnings
 
 import numpy as np
@@ -38,13 +41,14 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────────────────────────────────────
 # USER CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
-UPDATE_INTERVAL_MS: int = 1000   # ms between animation frames (change freely)
+UPDATE_INTERVAL_MS: int = 100    # ms between animation frames (change freely)
+TOTAL_ROUNDS: int = 200          # total number of optimization rounds
 
 # ─────────────────────────────────────────────────────────────────────────────
-# PATHS
+# PATHS  (H_SV_RES.mat lives one directory above this script)
 # ─────────────────────────────────────────────────────────────────────────────
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-MAT_FILE = os.path.join(_THIS_DIR, "H_SV_RES.mat")
+MAT_FILE = os.path.join(_THIS_DIR, "..", "H_SV_RES.mat")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROFESSIONAL COLOR PALETTE  (all sub-plots share the same family)
@@ -72,28 +76,34 @@ PAL = dict(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# FONT / STYLE SETUP
+# FONT / STYLE SETUP  (enlarged for readability)
 # ─────────────────────────────────────────────────────────────────────────────
 plt.rcParams.update({
-    "font.family"        : "DejaVu Sans",
-    "font.size"          : 9,
-    "axes.titlesize"     : 10,
-    "axes.titleweight"   : "bold",
-    "axes.labelsize"     : 9,
-    "axes.labelcolor"    : PAL["text_mid"],
-    "axes.edgecolor"     : "#B0BAC8",
-    "axes.linewidth"     : 0.8,
-    "xtick.color"        : PAL["text_mid"],
-    "ytick.color"        : PAL["text_mid"],
-    "xtick.labelsize"    : 8,
-    "ytick.labelsize"    : 8,
-    "grid.color"         : PAL["grid"],
-    "grid.linewidth"     : 0.6,
-    "legend.fontsize"    : 8,
-    "legend.framealpha"  : 0.9,
-    "figure.facecolor"   : PAL["fig_bg"],
-    "axes.facecolor"     : PAL["ax_bg"],
-    "savefig.facecolor"  : PAL["fig_bg"],
+    "font.family"          : "DejaVu Sans",
+    "font.size"            : 11,
+    "axes.titlesize"       : 13,
+    "axes.titleweight"     : "bold",
+    "axes.labelsize"       : 11,
+    "axes.labelcolor"      : PAL["text_mid"],
+    "axes.edgecolor"       : "#B0BAC8",
+    "axes.linewidth"       : 1.5,
+    "xtick.color"          : PAL["text_mid"],
+    "ytick.color"          : PAL["text_mid"],
+    "xtick.labelsize"      : 10,
+    "ytick.labelsize"      : 10,
+    "xtick.major.width"    : 1.5,
+    "ytick.major.width"    : 1.5,
+    "xtick.major.size"     : 5,
+    "ytick.major.size"     : 5,
+    "xtick.minor.width"    : 1.0,
+    "ytick.minor.width"    : 1.0,
+    "grid.color"           : PAL["grid"],
+    "grid.linewidth"       : 0.8,
+    "legend.fontsize"      : 10,
+    "legend.framealpha"    : 0.9,
+    "figure.facecolor"     : PAL["fig_bg"],
+    "axes.facecolor"       : PAL["ax_bg"],
+    "savefig.facecolor"    : PAL["fig_bg"],
 })
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -118,25 +128,28 @@ def load_data(path: str):
 # FIGURE / AXES SETUP
 # ─────────────────────────────────────────────────────────────────────────────
 def build_figure():
-    fig = plt.figure(figsize=(18, 9.5))
+    # Tall figure: H matrix spans full width on top; 2×2 grid of plots below.
+    fig = plt.figure(figsize=(18, 14))
     fig.patch.set_facecolor(PAL["fig_bg"])
 
-    # GridSpec: left column = H matrix (full height); right = 2 × 2 grid
+    # Outer GridSpec: 2 rows — row 0 = H matrix, row 1 = 2×2 scalar/curve plots.
+    # height_ratios chosen so the H matrix (13×35 cells, aspect="equal") gets
+    # enough vertical room at full figure width.
     outer = gridspec.GridSpec(
-        1, 2,
+        2, 1,
         figure=fig,
-        left=0.05, right=0.97,
-        top=0.92,  bottom=0.08,
-        wspace=0.32,
-        width_ratios=[1, 1.55],
+        left=0.06, right=0.97,
+        top=0.93,  bottom=0.07,
+        hspace=0.38,
+        height_ratios=[1.2, 1],
     )
 
-    ax_H = fig.add_subplot(outer[0, 0])
+    ax_H = fig.add_subplot(outer[0])
 
     inner = gridspec.GridSpecFromSubplotSpec(
         2, 2,
-        subplot_spec=outer[0, 1],
-        hspace=0.42, wspace=0.35,
+        subplot_spec=outer[1],
+        hspace=0.48, wspace=0.38,
     )
     ax_thr  = fig.add_subplot(inner[0, 0])
     ax_cmp  = fig.add_subplot(inner[0, 1])
@@ -145,7 +158,8 @@ def build_figure():
 
     for ax in (ax_H, ax_thr, ax_cmp, ax_fer, ax_avg):
         ax.set_facecolor(PAL["ax_bg"])
-        ax.tick_params(which="both", direction="in", length=3)
+        ax.tick_params(which="major", direction="in", length=5, width=1.5)
+        ax.tick_params(which="minor", direction="in", length=3, width=1.0)
 
     return fig, ax_H, ax_thr, ax_cmp, ax_fer, ax_avg
 
@@ -185,11 +199,11 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
     ax.set_ylim(rows - 0.5, -0.5)
     ax.set_xticks(np.arange(0, cols, 5))
     ax.set_yticks(np.arange(rows))
-    ax.set_yticklabels([str(i) for i in range(rows)], fontsize=7)
-    ax.set_xticklabels([str(i) for i in range(0, cols, 5)], fontsize=7)
-    ax.set_xlabel("Column index", labelpad=3)
-    ax.set_ylabel("Row index", labelpad=3)
-    ax.set_title("Shift-Value Matrix  H  (13 × 35)", color=PAL["text_dark"], pad=5)
+    ax.set_yticklabels([str(i) for i in range(rows)], fontsize=9)
+    ax.set_xticklabels([str(i) for i in range(0, cols, 5)], fontsize=9)
+    ax.set_xlabel("Column index", labelpad=4)
+    ax.set_ylabel("Row index", labelpad=4)
+    ax.set_title("Shift-Value Matrix  H  (13 × 35)", color=PAL["text_dark"], pad=6)
 
     return img
 
@@ -197,9 +211,10 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
 # SCALAR TIME-SERIES HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 def setup_scalar_ax(ax, title: str, ylabel: str, color: str):
-    ax.set_title(title, color=PAL["text_dark"], pad=4)
-    ax.set_xlabel("Optimization round", labelpad=3)
-    ax.set_ylabel(ylabel, labelpad=3, color=PAL["text_mid"])
+    ax.set_title(title, color=PAL["text_dark"], pad=5)
+    ax.set_xlabel("Optimization round", labelpad=4)
+    ax.set_ylabel(ylabel, labelpad=4, color=PAL["text_mid"])
+    ax.set_xlim(0, TOTAL_ROUNDS)
     ax.yaxis.set_major_formatter(ticker.FormatStrFormatter("%.3g"))
     ax.grid(True, axis="both")
     ax.set_axisbelow(True)
@@ -228,9 +243,9 @@ def update_scalar(ax, xs, ys, color: str, marker_color: str, ylabel: str, title:
 # FER / AVGIT CURVE HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
 def setup_curve_ax(ax, title: str, ylabel: str, log_scale: bool = True):
-    ax.set_title(title, color=PAL["text_dark"], pad=4)
-    ax.set_xlabel("$E_b / N_0$  (dB)", labelpad=3)
-    ax.set_ylabel(ylabel, labelpad=3)
+    ax.set_title(title, color=PAL["text_dark"], pad=5)
+    ax.set_xlabel("$E_b / N_0$  (dB)", labelpad=4)
+    ax.set_ylabel(ylabel, labelpad=4)
     if log_scale:
         ax.set_yscale("log")
     ax.grid(True, which="both", alpha=0.5)
@@ -307,42 +322,55 @@ def main():
     (N, H_mats, iter_nums, thresholds,
      complexities, fer_curves, avgit_curves, ebn0) = load_data(MAT_FILE)
 
+    # iter_nums must be sorted (they represent checkpoint round indices)
+    sorted_rounds = sorted(iter_nums)
+
     fig, ax_H, ax_thr, ax_cmp, ax_fer, ax_avg = build_figure()
 
     # ── static super-title with round counter ──
     title_text = fig.suptitle(
-        "LDPC Code Optimization  —  Round 0",
-        fontsize=13, fontweight="bold",
+        f"LDPC Code Optimization  —  Round 1 / {TOTAL_ROUNDS}",
+        fontsize=15, fontweight="bold",
         color=PAL["text_dark"], y=0.975,
     )
 
-    # ── pre-build running lists for scalar plots ──
-    xs_shown:     list = []
-    thr_shown:    list = []
-    cmp_shown:    list = []
-
-    # ── state for curve plots ──
-    state = dict(frame=-1)
+    # ── state tracker: remember which checkpoint was last drawn ──
+    state = dict(prev_state_idx=-2)   # -2 = never drawn
 
     # ─── animation update function ───────────────────────────────────────────
     def update(frame: int):
-        if frame >= N:
-            return
+        # frame ∈ [0, TOTAL_ROUNDS) → display round = frame + 1
+        round_num = frame + 1
 
-        state["frame"] = frame
-
-        # header
+        # Always refresh the round counter in the title
         title_text.set_text(
-            "LDPC Code Optimization  —  Round {:d}".format(iter_nums[frame])
+            f"LDPC Code Optimization  —  Round {round_num} / {TOTAL_ROUNDS}"
         )
 
-        # ── H matrix ──
-        draw_H_matrix(ax_H, H_mats[frame])
+        # Find the most recent checkpoint at or before the current round
+        # bisect_right gives insertion point; subtract 1 for the last ≤ round_num
+        pos = bisect.bisect_right(sorted_rounds, round_num) - 1
+        if pos < 0:
+            # No checkpoint reached yet — nothing to draw except the title
+            fig.canvas.draw_idle()
+            return
 
-        # ── scalar plots ──
-        xs_shown.append(iter_nums[frame])
-        thr_shown.append(thresholds[frame])
-        cmp_shown.append(complexities[frame])
+        state_idx = iter_nums.index(sorted_rounds[pos])
+
+        if state_idx == state["prev_state_idx"]:
+            # Checkpoint unchanged — only the title needs redrawing
+            fig.canvas.draw_idle()
+            return
+
+        state["prev_state_idx"] = state_idx
+
+        # ── H matrix ──
+        draw_H_matrix(ax_H, H_mats[state_idx])
+
+        # ── scalar time-series (all checkpoints up to and including state_idx) ──
+        xs_shown  = [iter_nums[i]    for i in range(state_idx + 1)]
+        thr_shown = [thresholds[i]   for i in range(state_idx + 1)]
+        cmp_shown = [complexities[i] for i in range(state_idx + 1)]
 
         update_scalar(ax_thr, xs_shown, thr_shown,
                       PAL["threshold"], PAL["threshold_pt"],
@@ -351,22 +379,20 @@ def main():
                       PAL["complexity"], PAL["complexity_pt"],
                       "Complexity index", "Normalised Complexity")
 
-        # ── curve plots ──
-        initial_fer  = fer_curves[0]
-        initial_avg  = avgit_curves[0]
+        # ── FER / AvgIT curves ──
+        initial_fer = fer_curves[0]
+        initial_avg = avgit_curves[0]
 
-        if frame == 0:
-            # only initial state
+        if state_idx == 0:
             update_curves(ax_fer, ebn0, initial_fer, [], None,
                           "Frame Error Rate (FER)", "FER")
             update_curves(ax_avg, ebn0, initial_avg, [], None,
                           "Average Iterations (AvgIT)", "AvgIT", log_scale=False)
         else:
-            # history = states 1 … frame-1 (exclude initial and current)
-            history_fer  = fer_curves[1:frame]
-            history_avg  = avgit_curves[1:frame]
-            current_fer  = fer_curves[frame]
-            current_avg  = avgit_curves[frame]
+            history_fer = fer_curves[1:state_idx]
+            history_avg = avgit_curves[1:state_idx]
+            current_fer = fer_curves[state_idx]
+            current_avg = avgit_curves[state_idx]
 
             update_curves(ax_fer, ebn0, initial_fer, history_fer, current_fer,
                           "Frame Error Rate (FER)", "FER")
@@ -378,20 +404,10 @@ def main():
     anim = FuncAnimation(
         fig,
         update,
-        frames=N,
+        frames=TOTAL_ROUNDS,        # exactly 200 frames = 200 optimization rounds
         interval=UPDATE_INTERVAL_MS,
         repeat=False,
     )
-
-    # ── add a progress bar / instruction strip at the bottom ──
-    # fig.text(
-    #     0.5, 0.012,
-    #     "Each frame represents one saved optimisation state  |  "
-    #     f"Interval: {UPDATE_INTERVAL_MS / 1000:.1f} s  |  "
-    #     "Optimisation rounds: 0 → 200",
-    #     ha="center", va="bottom",
-    #     fontsize=7.5, color=PAL["text_mid"], style="italic",
-    # )
 
     plt.show()
 
