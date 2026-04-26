@@ -43,6 +43,10 @@ warnings.filterwarnings("ignore")
 # ─────────────────────────────────────────────────────────────────────────────
 UPDATE_INTERVAL_MS: int = 100    # ms between animation frames (change freely)
 TOTAL_ROUNDS: int = 200          # total number of optimization rounds
+FIGURE_WIDTH: float = 18.0       # inches – change this to scale the entire figure uniformly;
+                                  # height is computed automatically via _HEIGHT_SCALE.
+_HEIGHT_SCALE: float = 1.70      # figure height = FIGURE_WIDTH × _HEIGHT_SCALE  (tall canvas)
+FIGURE_HEIGHT: float = round(FIGURE_WIDTH * _HEIGHT_SCALE, 1)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PATHS  (H_SV_RES.mat lives one directory above this script)
@@ -127,22 +131,23 @@ def load_data(path: str):
 # ─────────────────────────────────────────────────────────────────────────────
 # FIGURE / AXES SETUP
 # ─────────────────────────────────────────────────────────────────────────────
-def build_figure():
-    # Tall figure: H matrix spans full width on top; 2×2 grid of plots below.
-    fig = plt.figure(figsize=(18, 22))
+def build_figure(fig_width: float = FIGURE_WIDTH, fig_height: float = FIGURE_HEIGHT):
+    fig = plt.figure(figsize=(fig_width, fig_height))
     fig.patch.set_facecolor(PAL["fig_bg"])
 
     # Outer GridSpec: 2 rows — row 0 = H matrix, row 1 = 2×2 scalar/curve plots.
-    # height_ratios[0] kept smaller so the H matrix doesn't dominate; the
-    # bottom 2×2 grid gets more vertical room so subplots keep a square-ish
-    # aspect ratio instead of appearing too flat.
+    # top=0.90 reserves the top 10 % of the figure for the suptitle so that the
+    # H-matrix subplot title never overlaps the figure-level super-title.
+    # height_ratios=[0.55, 2.20]: the taller H-matrix row ensures that the
+    # aspect="equal" image fills ≥ 2/3 of the figure width.  The large bottom
+    # ratio, combined with the tall canvas, gives portrait-oriented subplots.
     outer = gridspec.GridSpec(
         2, 1,
         figure=fig,
         left=0.06, right=0.97,
-        top=0.95,  bottom=0.05,
-        hspace=0.30,
-        height_ratios=[0.6, 1.8],
+        top=0.90,  bottom=0.04,
+        hspace=0.20,
+        height_ratios=[0.55, 2.20],
     )
 
     ax_H = fig.add_subplot(outer[0])
@@ -150,7 +155,7 @@ def build_figure():
     inner = gridspec.GridSpecFromSubplotSpec(
         2, 2,
         subplot_spec=outer[1],
-        hspace=0.45, wspace=0.38,
+        hspace=0.40, wspace=0.38,
     )
     ax_thr  = fig.add_subplot(inner[0, 0])
     ax_cmp  = fig.add_subplot(inner[0, 1])
@@ -326,13 +331,26 @@ def main():
     # iter_nums must be sorted (they represent checkpoint round indices)
     sorted_rounds = sorted(iter_nums)
 
+    # ── Pre-compute per-round scalar values (1 … TOTAL_ROUNDS) ───────────────
+    # For rounds between checkpoints the value is inherited from the most recent
+    # checkpoint (staircase pattern); rounds before the first checkpoint are NaN.
+    def _val_at(r, values):
+        pos = bisect.bisect_right(sorted_rounds, r) - 1
+        if pos < 0:
+            return np.nan
+        return values[iter_nums.index(sorted_rounds[pos])]
+
+    full_thr = np.array([_val_at(r, thresholds)   for r in range(1, TOTAL_ROUNDS + 1)])
+    full_cmp = np.array([_val_at(r, complexities) for r in range(1, TOTAL_ROUNDS + 1)])
+
     fig, ax_H, ax_thr, ax_cmp, ax_fer, ax_avg = build_figure()
 
     # ── static super-title with round counter ──
+    # y=0.960 sits above the outer GridSpec top (0.90), leaving a clear gap.
     title_text = fig.suptitle(
         f"LDPC Code Optimization  —  Round 1 / {TOTAL_ROUNDS}",
         fontsize=15, fontweight="bold",
-        color=PAL["text_dark"], y=0.975,
+        color=PAL["text_dark"], y=0.960,
     )
 
     # ── state tracker: remember which checkpoint was last drawn ──
@@ -348,18 +366,33 @@ def main():
             f"LDPC Code Optimization  —  Round {round_num} / {TOTAL_ROUNDS}"
         )
 
-        # Find the most recent checkpoint at or before the current round
-        # bisect_right gives insertion point; subtract 1 for the last ≤ round_num
+        # ── scalar time-series: update every round ──────────────────────────
+        # Build xs/ys for all rounds 1..round_num; skip rounds before the first
+        # checkpoint (NaN).  Non-checkpoint rounds carry the last checkpoint's
+        # value, producing a staircase that grows one step each frame.
+        valid = ~np.isnan(full_thr[:round_num])
+        xs_v   = np.arange(1, round_num + 1)[valid]
+        thr_v  = full_thr[:round_num][valid]
+        cmp_v  = full_cmp[:round_num][valid]
+
+        update_scalar(ax_thr, xs_v, thr_v,
+                      PAL["threshold"], PAL["threshold_pt"],
+                      "Threshold (dB)", "Decoding Threshold")
+        update_scalar(ax_cmp, xs_v, cmp_v,
+                      PAL["complexity"], PAL["complexity_pt"],
+                      "Complexity index", "Normalised Complexity")
+
+        # ── find the most recent checkpoint at or before the current round ──
         pos = bisect.bisect_right(sorted_rounds, round_num) - 1
         if pos < 0:
-            # No checkpoint reached yet — nothing to draw except the title
+            # No checkpoint reached yet — scalar plots drawn above, nothing else.
             fig.canvas.draw_idle()
             return
 
         state_idx = iter_nums.index(sorted_rounds[pos])
 
+        # ── H matrix + FER/AvgIT curves: only redraw when checkpoint changes ─
         if state_idx == state["prev_state_idx"]:
-            # Checkpoint unchanged — only the title needs redrawing
             fig.canvas.draw_idle()
             return
 
@@ -367,18 +400,6 @@ def main():
 
         # ── H matrix ──
         draw_H_matrix(ax_H, H_mats[state_idx])
-
-        # ── scalar time-series (all checkpoints up to and including state_idx) ──
-        xs_shown  = [iter_nums[i]    for i in range(state_idx + 1)]
-        thr_shown = [thresholds[i]   for i in range(state_idx + 1)]
-        cmp_shown = [complexities[i] for i in range(state_idx + 1)]
-
-        update_scalar(ax_thr, xs_shown, thr_shown,
-                      PAL["threshold"], PAL["threshold_pt"],
-                      "Threshold (dB)", "Decoding Threshold")
-        update_scalar(ax_cmp, xs_shown, cmp_shown,
-                      PAL["complexity"], PAL["complexity_pt"],
-                      "Complexity index", "Normalised Complexity")
 
         # ── FER / AvgIT curves ──
         initial_fer = fer_curves[0]
