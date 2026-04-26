@@ -48,7 +48,7 @@ TOTAL_ROUNDS: int = 200          # total number of optimization rounds
 # PATHS  (H_SV_RES.mat lives one directory above this script)
 # ─────────────────────────────────────────────────────────────────────────────
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-MAT_FILE = os.path.join(_THIS_DIR, "..", "H_SV_RES.mat")
+MAT_FILE = os.path.join(_THIS_DIR, "H_SV_RES.mat")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROFESSIONAL COLOR PALETTE  (all sub-plots share the same family)
@@ -129,19 +129,20 @@ def load_data(path: str):
 # ─────────────────────────────────────────────────────────────────────────────
 def build_figure():
     # Tall figure: H matrix spans full width on top; 2×2 grid of plots below.
-    fig = plt.figure(figsize=(18, 14))
+    fig = plt.figure(figsize=(18, 22))
     fig.patch.set_facecolor(PAL["fig_bg"])
 
     # Outer GridSpec: 2 rows — row 0 = H matrix, row 1 = 2×2 scalar/curve plots.
-    # height_ratios chosen so the H matrix (13×35 cells, aspect="equal") gets
-    # enough vertical room at full figure width.
+    # height_ratios[0] kept smaller so the H matrix doesn't dominate; the
+    # bottom 2×2 grid gets more vertical room so subplots keep a square-ish
+    # aspect ratio instead of appearing too flat.
     outer = gridspec.GridSpec(
         2, 1,
         figure=fig,
         left=0.06, right=0.97,
-        top=0.93,  bottom=0.07,
-        hspace=0.38,
-        height_ratios=[1.2, 1],
+        top=0.95,  bottom=0.05,
+        hspace=0.30,
+        height_ratios=[0.6, 1.8],
     )
 
     ax_H = fig.add_subplot(outer[0])
@@ -149,7 +150,7 @@ def build_figure():
     inner = gridspec.GridSpecFromSubplotSpec(
         2, 2,
         subplot_spec=outer[1],
-        hspace=0.48, wspace=0.38,
+        hspace=0.45, wspace=0.38,
     )
     ax_thr  = fig.add_subplot(inner[0, 0])
     ax_cmp  = fig.add_subplot(inner[0, 1])
