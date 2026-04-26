@@ -28,8 +28,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.animation import FuncAnimation
-from matplotlib.colors import Normalize, ListedColormap
-from matplotlib.cm import ScalarMappable
+from matplotlib.colors import ListedColormap
 import matplotlib.ticker as ticker
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
@@ -45,8 +44,7 @@ UPDATE_INTERVAL_MS: int = 1000   # ms between animation frames (change freely)
 # PATHS
 # ─────────────────────────────────────────────────────────────────────────────
 _THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-_EXAMPLE_DIR = os.path.join(_THIS_DIR, "..")
-MAT_FILE = os.path.join(_EXAMPLE_DIR, "H_SV_RES.mat")
+MAT_FILE = os.path.join(_THIS_DIR, "H_SV_RES.mat")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PROFESSIONAL COLOR PALETTE  (all sub-plots share the same family)
@@ -158,22 +156,21 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
     """Render the 13 × 35 shift-value matrix.
 
     -1  → background colour (zero block)
-    ≥ 0 → colour from sequential colormap (cyclic-shift of identity)
+    ≥ 0 → single accent colour (cyclic-shift block present)
     """
     ax.cla()
 
     rows, cols = H.shape          # 13, 35
-    masked = np.ma.masked_where(H < 0, H.astype(float))
+    # Binary: 0 = zero block (-1), 1 = non-zero block (≥ 0)
+    binary = (H >= 0).astype(float)
 
-    cmap_base = plt.get_cmap(PAL["hmat_cmap"])
-    cmap_base.set_bad(PAL["hmat_zero"])
+    cmap_two = ListedColormap([PAL["hmat_zero"], "#4A90D9"])
 
-    vmin, vmax = 0, max(Z - 1, 1)
     img = ax.imshow(
-        masked,
-        cmap=cmap_base,
-        vmin=vmin, vmax=vmax,
-        aspect="auto",
+        binary,
+        cmap=cmap_two,
+        vmin=0, vmax=1,
+        aspect="equal",
         interpolation="nearest",
         origin="upper",
     )
@@ -193,14 +190,6 @@ def draw_H_matrix(ax, H: np.ndarray, Z: int = 64):
     ax.set_xlabel("Column index", labelpad=3)
     ax.set_ylabel("Row index", labelpad=3)
     ax.set_title("Shift-Value Matrix  H  (13 × 35)", color=PAL["text_dark"], pad=5)
-
-    # colorbar
-    sm = ScalarMappable(cmap=cmap_base, norm=Normalize(vmin=vmin, vmax=vmax))
-    sm.set_array([])
-    cbar = ax.figure.colorbar(sm, ax=ax, fraction=0.03, pad=0.02, shrink=0.85)
-    cbar.set_label("Cyclic shift", fontsize=7, color=PAL["text_mid"])
-    cbar.ax.tick_params(labelsize=6, colors=PAL["text_mid"])
-    cbar.outline.set_edgecolor("#B0BAC8")
 
     return img
 
@@ -238,45 +227,57 @@ def update_scalar(ax, xs, ys, color: str, marker_color: str, ylabel: str, title:
 # ─────────────────────────────────────────────────────────────────────────────
 # FER / AVGIT CURVE HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
-def setup_curve_ax(ax, title: str, ylabel: str):
+def setup_curve_ax(ax, title: str, ylabel: str, log_scale: bool = True):
     ax.set_title(title, color=PAL["text_dark"], pad=4)
     ax.set_xlabel("$E_b / N_0$  (dB)", labelpad=3)
     ax.set_ylabel(ylabel, labelpad=3)
-    ax.set_yscale("log")
+    if log_scale:
+        ax.set_yscale("log")
     ax.grid(True, which="both", alpha=0.5)
     ax.set_axisbelow(True)
     ax.set_xlim(2.6, 5.0)
 
 
 def update_curves(ax, ebn0, initial_curve, history_curves, current_curve,
-                  title: str, ylabel: str):
+                  title: str, ylabel: str, log_scale: bool = True):
     ax.cla()
-    setup_curve_ax(ax, title, ylabel)
+    setup_curve_ax(ax, title, ylabel, log_scale=log_scale)
+
+    def _plot(curve):
+        if log_scale:
+            return np.clip(curve, 1e-6, 1)
+        return curve
+
+    def _draw(curve, **kwargs):
+        if log_scale:
+            ax.semilogy(ebn0, _plot(curve), **kwargs)
+        else:
+            ax.plot(ebn0, curve, **kwargs)
 
     # ── history curves (all previous optimization states, faded) ──
     for curve in history_curves:
-        ax.semilogy(ebn0, np.clip(curve, 1e-6, 1),
-                    color=PAL["history"], linewidth=0.9,
-                    alpha=PAL["hist_alpha"], zorder=2)
+        _draw(curve,
+              color=PAL["history"], linewidth=0.9,
+              alpha=PAL["hist_alpha"], zorder=2)
 
     # ── current optimization curve ──
     if current_curve is not None:
-        ax.semilogy(ebn0, np.clip(current_curve, 1e-6, 1),
-                    color=PAL["current"], linewidth=2.0,
-                    marker="D", markersize=4.5,
-                    markerfacecolor=PAL["current"],
-                    markeredgecolor="white", markeredgewidth=0.7,
-                    zorder=4, label="Current state")
+        _draw(current_curve,
+              color=PAL["current"], linewidth=2.0,
+              marker="D", markersize=4.5,
+              markerfacecolor=PAL["current"],
+              markeredgecolor="white", markeredgewidth=0.7,
+              zorder=4, label="Current state")
 
     # ── initial curve (always on top, in red) ──
     if initial_curve is not None:
-        ax.semilogy(ebn0, np.clip(initial_curve, 1e-6, 1),
-                    color=PAL["initial"], linewidth=2.0,
-                    linestyle="--",
-                    marker="s", markersize=4.5,
-                    markerfacecolor=PAL["initial"],
-                    markeredgecolor="white", markeredgewidth=0.7,
-                    zorder=5, label="Initial state")
+        _draw(initial_curve,
+              color=PAL["initial"], linewidth=2.0,
+              linestyle="--",
+              marker="s", markersize=4.5,
+              markerfacecolor=PAL["initial"],
+              markeredgecolor="white", markeredgewidth=0.7,
+              zorder=5, label="Initial state")
 
     # legend
     legend_handles = []
@@ -310,7 +311,7 @@ def main():
 
     # ── static super-title with round counter ──
     title_text = fig.suptitle(
-        "LDPC Code Optimization  —  State 0 / {}  (Round 0)".format(N - 1),
+        "LDPC Code Optimization  —  Round 0",
         fontsize=13, fontweight="bold",
         color=PAL["text_dark"], y=0.975,
     )
@@ -332,9 +333,7 @@ def main():
 
         # header
         title_text.set_text(
-            "LDPC Code Optimization  —  State {:02d} / {}  |  Round {:d}".format(
-                frame, N - 1, iter_nums[frame]
-            )
+            "LDPC Code Optimization  —  Round {:d}".format(iter_nums[frame])
         )
 
         # ── H matrix ──
@@ -361,7 +360,7 @@ def main():
             update_curves(ax_fer, ebn0, initial_fer, [], None,
                           "Frame Error Rate (FER)", "FER")
             update_curves(ax_avg, ebn0, initial_avg, [], None,
-                          "Average Iterations (AvgIT)", "AvgIT")
+                          "Average Iterations (AvgIT)", "AvgIT", log_scale=False)
         else:
             # history = states 1 … frame-1 (exclude initial and current)
             history_fer  = fer_curves[1:frame]
@@ -372,7 +371,7 @@ def main():
             update_curves(ax_fer, ebn0, initial_fer, history_fer, current_fer,
                           "Frame Error Rate (FER)", "FER")
             update_curves(ax_avg, ebn0, initial_avg, history_avg, current_avg,
-                          "Average Iterations (AvgIT)", "AvgIT")
+                          "Average Iterations (AvgIT)", "AvgIT", log_scale=False)
 
         fig.canvas.draw_idle()
 
